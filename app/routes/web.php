@@ -1,5 +1,7 @@
 <?php
 
+use Illuminate\Http\Request;
+
 /** @var \Laravel\Lumen\Routing\Router $router */
 
 /*
@@ -20,5 +22,17 @@ $router->get('/', function () use ($router) {
 */
 
 $router->get('/', function () {
-    return view('welcome', ['title' => 'NeAnime · anime.neapp.ru']);
+    return view('home')->render();
+});
+
+$router->get('/list', function (Request $request) {
+    return view('list', ['mode' => $request->input('mode', 'favorites')])->render();
+});
+
+$router->get('/details', function () {
+    return view('details')->render();
+});
+
+$router->get('/watch', function () {
+    return view('watch')->render();
 });
