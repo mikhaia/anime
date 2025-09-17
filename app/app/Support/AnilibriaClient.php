@@ -30,9 +30,10 @@ class AnilibriaClient
         }
 
         $withRelations[] = 'related';
+        $withRelations[] = 'related.release';
 
         if (!empty($withRelations)) {
-            $query['with'] = implode(',', $withRelations);
+            $query['with'] = implode(',', array_unique($withRelations));
         }
 
         $payload = $this->makeRequest($url, $query);
@@ -281,13 +282,13 @@ class AnilibriaClient
                 continue;
             }
 
-            $identifier = Arr::get($release, 'id');
-            if (!is_numeric($identifier)) {
+            $releaseId = Arr::get($release, 'id');
+            if (!is_numeric($releaseId)) {
                 continue;
             }
 
-            $identifier = (int) $identifier;
-            if ($identifier <= 0 || $identifier === $currentId) {
+            $releaseId = (int) $releaseId;
+            if ($releaseId <= 0 || $releaseId === $currentId) {
                 continue;
             }
 
@@ -297,6 +298,19 @@ class AnilibriaClient
                 ?? Arr::get($release, 'poster.preview')
                 ?? Arr::get($release, 'poster.src');
 
+            $identifier = Arr::get($release, 'alias');
+            if (!is_string($identifier) || trim($identifier) === '') {
+                $identifier = Arr::get($release, 'code');
+            }
+
+            if (is_string($identifier)) {
+                $identifier = trim($identifier);
+            }
+
+            if (!is_string($identifier) || $identifier === '') {
+                $identifier = (string) $releaseId;
+            }
+
             $relation = Arr::get($item, 'relation');
             if (is_array($relation)) {
                 $relation = Arr::get($relation, 'title')
@@ -305,9 +319,10 @@ class AnilibriaClient
             }
 
             $normalized[] = [
-                'id' => $identifier,
+                'id' => $releaseId,
                 'title' => $title,
                 'poster_url' => $posterPath ? $this->buildUrl($posterPath) : null,
+                'identifier' => $identifier,
                 'alias' => Arr::get($release, 'alias'),
                 'relation' => is_string($relation) && $relation !== '' ? $relation : null,
             ];
