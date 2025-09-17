@@ -56,25 +56,34 @@
             <button class="modal-close" type="button" data-modal-close>
                 <span class="material-symbols-outlined">close</span>
             </button>
-            <h2 class="modal-title" id="login-title">Вход в аккаунт</h2>
-            <p class="modal-description">Введите свои данные, чтобы продолжить.</p>
+            <div class="modal-header">
+                <span class="modal-badge">С возвращением!</span>
+                <h2 class="modal-title" id="login-title">Вход в аккаунт</h2>
+                <p class="modal-description">Введите свои данные, чтобы продолжить и открыть доступ к персональным рекомендациям.</p>
+            </div>
             <form class="auth-form" data-login-form method="POST" action="{{ url('/login') }}">
                 <input type="hidden" name="redirect" value="{{ request()->fullUrl() }}">
                 <div class="form-field">
                     <label class="form-label" for="login-email">Email</label>
-                    <input
-                        class="form-input"
-                        type="email"
-                        id="login-email"
-                        name="email"
-                        autocomplete="email"
-                        value="{{ $loginEmail ?? '' }}"
-                        required
-                    >
+                    <div class="form-input-wrapper">
+                        <span class="form-input-icon material-symbols-outlined">alternate_email</span>
+                        <input
+                            class="form-input"
+                            type="email"
+                            id="login-email"
+                            name="email"
+                            autocomplete="email"
+                            value="{{ $loginEmail ?? '' }}"
+                            required
+                        >
+                    </div>
                 </div>
                 <div class="form-field">
                     <label class="form-label" for="login-password">Пароль</label>
-                    <input class="form-input" type="password" id="login-password" name="password" autocomplete="current-password" required>
+                    <div class="form-input-wrapper">
+                        <span class="form-input-icon material-symbols-outlined">lock</span>
+                        <input class="form-input" type="password" id="login-password" name="password" autocomplete="current-password" required>
+                    </div>
                 </div>
                 <p
                     class="form-message form-message--error"
