@@ -14,24 +14,30 @@
     </header>
     <section class="page-content page-content--wide">
         @if(!empty($seasons) && count($seasons) > 1)
-            <nav class="watch-seasons" aria-label="Сезоны">
-                <h3 class="watch-seasons__title">Сезоны</h3>
-                <ul class="watch-seasons__list">
-                    @foreach($seasons as $season)
-                        <li class="watch-seasons__item">
+            <nav class="mb-8" aria-label="Сезоны">
+                <div class="rounded-3xl border border-slate-700/60 bg-slate-900/70 p-6 shadow-lg shadow-slate-950/30 backdrop-blur">
+                    <div class="flex items-center justify-between gap-3">
+                        <h3 class="text-lg font-semibold text-white">Сезоны</h3>
+                    </div>
+                    <div class="mt-4 flex flex-wrap gap-3">
+                        @foreach($seasons as $season)
                             <a
                                 href="{{ url('/watch/' . rawurlencode($season['identifier'])) }}"
-                                class="watch-seasons__link @if(!empty($season['is_active'])) watch-seasons__link--active @endif"
+                                @class([
+                                    'group inline-flex min-w-[12rem] flex-1 flex-col gap-1 rounded-2xl border px-4 py-3 text-left shadow-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/70',
+                                    'border-blue-500/80 bg-blue-600/25 text-blue-100 shadow-lg shadow-blue-900/40 ring-2 ring-inset ring-blue-500/70' => !empty($season['is_active']),
+                                    'border-slate-700/60 bg-slate-800/80 text-slate-200 hover:border-slate-600 hover:bg-slate-800/90 focus-visible:ring-offset-0' => empty($season['is_active']),
+                                ])
                                 @if(!empty($season['is_active'])) aria-current="page" @endif
                             >
-                                <span class="watch-seasons__link-title">{{ $season['title'] }}</span>
+                                <span class="text-base font-semibold tracking-tight">{{ $season['title'] }}</span>
                                 @if(!empty($season['relation']) && empty($season['is_active']))
-                                    <span class="watch-seasons__link-relation">{{ $season['relation'] }}</span>
+                                    <span class="text-sm font-medium text-slate-400 transition group-hover:text-slate-300">{{ $season['relation'] }}</span>
                                 @endif
                             </a>
-                        </li>
-                    @endforeach
-                </ul>
+                        @endforeach
+                    </div>
+                </div>
             </nav>
         @endif
         @if($activeEpisode)
