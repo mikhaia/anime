@@ -42,7 +42,4 @@
             <input type="hidden" name="mode" value="search">
         </form>
     </section>
-    <section class="page-content page-content--wide">
-        @include('components.anime-list', ['mode' => 'search', 'searchQuery' => $searchQuery ?? ''])
-    </section>
 @endsection
