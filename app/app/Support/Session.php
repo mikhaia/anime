@@ -9,7 +9,13 @@ class Session
     public static function start(): void
     {
         if (session_status() === PHP_SESSION_NONE) {
-            session_start();
+            if (headers_sent()) {
+                if (!isset($_SESSION)) {
+                    $_SESSION = [];
+                }
+            } else {
+                session_start();
+            }
         }
 
         if (!isset($_SESSION['_flash'])) {
