@@ -68,48 +68,137 @@ $router->get('/watch/{identifier}', function (string $identifier) {
         $anime = $query->where('alias', $identifier)->first();
     }
 
-    if (!$anime) {
-        /** @var AnilibriaClient $client */
-        $client = app(AnilibriaClient::class);
-        $release = $client->fetchRelease($identifier);
+    /** @var AnilibriaClient $client */
+    $client = app(AnilibriaClient::class);
 
-        if ($release) {
-            $anime = Anime::updateOrCreate(
-                ['id' => $release['id']],
-                [
-                    'title' => $release['title'],
-                    'poster_url' => $release['poster_url'],
-                    'type' => $release['type'],
-                    'year' => $release['year'],
-                    'episodes_total' => $release['episodes_total'],
-                    'alias' => $release['alias'],
-                ]
-            );
-        }
+    $releaseIdentifier = $identifier;
+    if ($anime) {
+        $releaseIdentifier = $anime->alias ?: (string) $anime->getKey();
+    }
+
+    $release = $client->fetchRelease($releaseIdentifier, true);
+
+    if (!$release && $anime) {
+        $release = $client->fetchRelease((string) $anime->getKey(), true);
+    }
+
+    if ($release) {
+        $anime = Anime::updateOrCreate(
+            ['id' => $release['id']],
+            [
+                'title' => $release['title'],
+                'poster_url' => $release['poster_url'],
+                'type' => $release['type'],
+                'year' => $release['year'],
+                'episodes_total' => $release['episodes_total'],
+                'alias' => $release['alias'],
+            ]
+        );
     }
 
     if (!$anime) {
         abort(404);
     }
 
-    $episodesTotal = (int) ($anime->episodes_total ?? 0);
-    $episodesCount = max(1, min($episodesTotal > 0 ? $episodesTotal : 12, 12));
+    $formatDuration = static function (?int $seconds): string {
+        if ($seconds === null || $seconds <= 0) {
+            return '—';
+        }
+
+        $minutes = (int) round($seconds / 60);
+        $minutes = max($minutes, 1);
+
+        return sprintf('%d мин.', $minutes);
+    };
+
+    $buildDescription = static function (string $animeTitle, int $episodeNumber, string $episodeTitle): string {
+        $normalizedTitle = trim($animeTitle) !== '' ? $animeTitle : 'Аниме';
+        $normalizedEpisodeTitle = trim($episodeTitle) !== ''
+            ? $episodeTitle
+            : sprintf('Серия %02d', $episodeNumber);
+
+        return sprintf(
+            '«%s» — эпизод %02d «%s». Наслаждайтесь просмотром любимого тайтла в высоком качестве.',
+            $normalizedTitle,
+            $episodeNumber,
+            $normalizedEpisodeTitle
+        );
+    };
 
     $episodes = [];
-    $baseStream = 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8';
 
-    for ($episodeNumber = 1; $episodeNumber <= $episodesCount; $episodeNumber++) {
-        $episodes[] = [
-            'number' => $episodeNumber,
-            'title' => sprintf('Серия %02d', $episodeNumber),
-            'description' => sprintf(
-                '«%s» — эпизод %02d. Наслаждайтесь просмотром любимого тайтла в высоком качестве.',
-                $anime->title,
-                $episodeNumber
-            ),
-            'duration' => '24 мин.',
-            'stream_url' => $baseStream,
-        ];
+    if ($release && !empty($release['episodes'])) {
+        foreach ($release['episodes'] as $episode) {
+            $streams = [];
+            foreach (($episode['streams'] ?? []) as $quality => $url) {
+                if (is_string($quality) && is_string($url) && $quality !== '' && $url !== '') {
+                    $streams[$quality] = $url;
+                }
+            }
+
+            if (empty($streams)) {
+                continue;
+            }
+
+            $defaultQuality = $episode['default_quality'] ?? null;
+            $defaultStream = null;
+
+            if (is_string($defaultQuality) && isset($streams[$defaultQuality])) {
+                $defaultStream = $streams[$defaultQuality];
+            } else {
+                $firstQuality = array_key_first($streams);
+                if ($firstQuality !== null) {
+                    $defaultStream = $streams[$firstQuality];
+                    $defaultQuality = $firstQuality;
+                }
+            }
+
+            if ($defaultStream === null) {
+                continue;
+            }
+
+            $episodeNumber = (int) ($episode['number'] ?? 0);
+            if ($episodeNumber <= 0) {
+                continue;
+            }
+
+            $episodeTitle = (string) ($episode['title'] ?? sprintf('Серия %02d', $episodeNumber));
+
+            $episodes[] = [
+                'number' => $episodeNumber,
+                'title' => $episodeTitle,
+                'description' => $buildDescription($anime->title ?? '', $episodeNumber, $episodeTitle),
+                'duration' => $formatDuration($episode['duration_seconds'] ?? null),
+                'stream_url' => $defaultStream,
+                'streams' => $streams,
+                'default_quality' => $defaultQuality,
+            ];
+        }
+
+        usort($episodes, static fn (array $left, array $right) => $left['number'] <=> $right['number']);
+    }
+
+    if (empty($episodes)) {
+        $episodesTotal = (int) ($anime->episodes_total ?? 0);
+        $episodesCount = max(1, min($episodesTotal > 0 ? $episodesTotal : 12, 12));
+
+        $baseStream = 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8';
+
+        for ($episodeNumber = 1; $episodeNumber <= $episodesCount; $episodeNumber++) {
+            $title = sprintf('Серия %02d', $episodeNumber);
+
+            $episodes[] = [
+                'number' => $episodeNumber,
+                'title' => $title,
+                'description' => $buildDescription($anime->title ?? '', $episodeNumber, $title),
+                'duration' => '24 мин.',
+                'stream_url' => $baseStream,
+                'streams' => [
+                    '720p' => $baseStream,
+                ],
+                'default_quality' => '720p',
+            ];
+        }
     }
 
     $activeEpisode = $episodes[0] ?? null;
