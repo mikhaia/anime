@@ -3,6 +3,7 @@
 use App\Models\Anime;
 use App\Models\WatchProgress;
 use App\Support\Auth;
+use App\Support\AnilibriaClient;
 use Illuminate\Http\Request;
 
 /** @var \Laravel\Lumen\Routing\Router $router */
@@ -59,6 +60,26 @@ $router->get('/watch/{identifier}', function (string $identifier) {
         $anime = $query->find((int) $identifier);
     } else {
         $anime = $query->where('alias', $identifier)->first();
+    }
+
+    if (!$anime) {
+        /** @var AnilibriaClient $client */
+        $client = app(AnilibriaClient::class);
+        $release = $client->fetchRelease($identifier);
+
+        if ($release) {
+            $anime = Anime::updateOrCreate(
+                ['id' => $release['id']],
+                [
+                    'title' => $release['title'],
+                    'poster_url' => $release['poster_url'],
+                    'type' => $release['type'],
+                    'year' => $release['year'],
+                    'episodes_total' => $release['episodes_total'],
+                    'alias' => $release['alias'],
+                ]
+            );
+        }
     }
 
     if (!$anime) {
