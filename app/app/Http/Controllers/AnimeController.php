@@ -7,6 +7,7 @@ use App\Models\AnimeCatalogCache;
 use App\Support\AnilibriaClient;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Carbon\CarbonImmutable;
 use Illuminate\Support\Arr;
 
 class AnimeController extends Controller
@@ -27,14 +28,14 @@ class AnimeController extends Controller
         }
 
         $page = max(1, (int) $request->query('page', 1));
-        $today = now()->toDateString();
+        $today = CarbonImmutable::today();
 
         $cache = AnimeCatalogCache::query()
             ->where('category', $category)
             ->where('page', $page)
             ->first();
 
-        if ($cache && $cache->cached_date && $cache->cached_date->toDateString() === $today) {
+        if ($cache && $cache->cached_date && $cache->cached_date->isSameDay($today)) {
             $data = $this->loadCachedAnime($cache->anime_ids ?? []);
 
             return response()->json([
