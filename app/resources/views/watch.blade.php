@@ -13,6 +13,27 @@
         <p class="page-subtitle">Выберите серию в плейлисте справа и наслаждайтесь просмотром с поддержкой HLS.</p>
     </header>
     <section class="page-content page-content--wide">
+        @if(!empty($seasons) && count($seasons) > 1)
+            <nav class="watch-seasons" aria-label="Сезоны">
+                <h3 class="watch-seasons__title">Сезоны</h3>
+                <ul class="watch-seasons__list">
+                    @foreach($seasons as $season)
+                        <li class="watch-seasons__item">
+                            <a
+                                href="{{ url('/watch/' . rawurlencode($season['identifier'])) }}"
+                                class="watch-seasons__link @if(!empty($season['is_active'])) watch-seasons__link--active @endif"
+                                @if(!empty($season['is_active'])) aria-current="page" @endif
+                            >
+                                <span class="watch-seasons__link-title">{{ $season['title'] }}</span>
+                                @if(!empty($season['relation']) && empty($season['is_active']))
+                                    <span class="watch-seasons__link-relation">{{ $season['relation'] }}</span>
+                                @endif
+                            </a>
+                        </li>
+                    @endforeach
+                </ul>
+            </nav>
+        @endif
         @if($activeEpisode)
             <div
                 class="watch-layout"

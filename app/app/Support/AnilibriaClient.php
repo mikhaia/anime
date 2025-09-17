@@ -23,8 +23,16 @@ class AnilibriaClient
         $url = sprintf('%s%s/%s', self::API_BASE_URL, self::RELEASE_ENDPOINT, rawurlencode($identifier));
         $query = [];
 
+        $withRelations = [];
+
         if ($withEpisodes) {
-            $query['with'] = 'episodes';
+            $withRelations[] = 'episodes';
+        }
+
+        $withRelations[] = 'related';
+
+        if (!empty($withRelations)) {
+            $query['with'] = implode(',', $withRelations);
         }
 
         $payload = $this->makeRequest($url, $query);
@@ -50,6 +58,7 @@ class AnilibriaClient
             'episodes' => $withEpisodes
                 ? $this->normalizeEpisodes(Arr::get($payload, 'episodes', []))
                 : [],
+            'related' => $this->normalizeRelated(Arr::get($payload, 'related', []), (int) $payload['id']),
         ];
     }
 
@@ -245,6 +254,64 @@ class AnilibriaClient
         }
 
         usort($normalized, static fn (array $left, array $right) => $left['number'] <=> $right['number']);
+
+        return $normalized;
+    }
+
+    /**
+     * @param array<int, mixed> $related
+     * @return array<int, array<string, mixed>>
+     */
+    private function normalizeRelated(array $related, int $currentId): array
+    {
+        $normalized = [];
+
+        foreach ($related as $item) {
+            $release = [];
+
+            if (is_array($item)) {
+                if (is_array($item['release'] ?? null)) {
+                    $release = $item['release'];
+                } else {
+                    $release = $item;
+                }
+            }
+
+            if (empty($release)) {
+                continue;
+            }
+
+            $identifier = Arr::get($release, 'id');
+            if (!is_numeric($identifier)) {
+                continue;
+            }
+
+            $identifier = (int) $identifier;
+            if ($identifier <= 0 || $identifier === $currentId) {
+                continue;
+            }
+
+            $title = $this->resolveTitle($release);
+            $posterPath = Arr::get($release, 'poster.optimized.preview')
+                ?? Arr::get($release, 'poster.optimized.src')
+                ?? Arr::get($release, 'poster.preview')
+                ?? Arr::get($release, 'poster.src');
+
+            $relation = Arr::get($item, 'relation');
+            if (is_array($relation)) {
+                $relation = Arr::get($relation, 'title')
+                    ?? Arr::get($relation, 'name')
+                    ?? Arr::get($relation, 'type');
+            }
+
+            $normalized[] = [
+                'id' => $identifier,
+                'title' => $title,
+                'poster_url' => $posterPath ? $this->buildUrl($posterPath) : null,
+                'alias' => Arr::get($release, 'alias'),
+                'relation' => is_string($relation) && $relation !== '' ? $relation : null,
+            ];
+        }
 
         return $normalized;
     }

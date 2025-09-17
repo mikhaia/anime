@@ -126,6 +126,7 @@ $router->get('/watch/{identifier}', function (string $identifier) {
     };
 
     $episodes = [];
+    $seasons = [];
 
     if ($release && !empty($release['episodes'])) {
         foreach ($release['episodes'] as $episode) {
@@ -218,10 +219,63 @@ $router->get('/watch/{identifier}', function (string $identifier) {
         }
     }
 
+    $currentIdentifier = $anime->alias ?: (string) $anime->getKey();
+
+    $seasonsMap = [];
+
+    if ($currentIdentifier !== '') {
+        $title = is_string($anime->title ?? null) && trim($anime->title) !== ''
+            ? $anime->title
+            : 'Текущий сезон';
+
+        $seasonsMap[$currentIdentifier] = [
+            'title' => $title,
+            'identifier' => $currentIdentifier,
+            'relation' => 'Текущий сезон',
+            'is_active' => true,
+        ];
+    }
+
+    $relatedSeasons = [];
+    if (is_array($release) && !empty($release['related']) && is_array($release['related'])) {
+        $relatedSeasons = $release['related'];
+    }
+
+    foreach ($relatedSeasons as $relatedSeason) {
+        $identifier = $relatedSeason['alias'] ?? null;
+        if (!is_string($identifier) || $identifier === '') {
+            $identifier = isset($relatedSeason['id']) ? (string) $relatedSeason['id'] : null;
+        }
+
+        if (!is_string($identifier) || $identifier === '' || isset($seasonsMap[$identifier])) {
+            continue;
+        }
+
+        $title = $relatedSeason['title'] ?? null;
+        if (!is_string($title) || trim($title) === '') {
+            $title = 'Сезон';
+        }
+
+        $relation = $relatedSeason['relation'] ?? null;
+        if (!is_string($relation) || trim($relation) === '') {
+            $relation = null;
+        }
+
+        $seasonsMap[$identifier] = [
+            'title' => $title,
+            'identifier' => $identifier,
+            'relation' => $relation,
+            'is_active' => false,
+        ];
+    }
+
+    $seasons = array_values($seasonsMap);
+
     return view('watch', [
         'anime' => $anime,
         'episodes' => $episodes,
         'activeEpisode' => $activeEpisode,
+        'seasons' => $seasons,
     ])->render();
 });
 
