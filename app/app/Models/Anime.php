@@ -27,4 +27,9 @@ class Anime extends Model
     {
         return $this->hasMany(Favorite::class);
     }
+
+    public function watchProgress(): HasMany
+    {
+        return $this->hasMany(WatchProgress::class);
+    }
 }
