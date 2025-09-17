@@ -13,6 +13,11 @@ abstract class TestCase extends BaseTestCase
      */
     public function createApplication()
     {
+        $databasePath = __DIR__.'/../database/database.sqlite';
+        if (!file_exists($databasePath)) {
+            touch($databasePath);
+        }
+
         return require __DIR__.'/../bootstrap/app.php';
     }
 }

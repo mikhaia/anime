@@ -19,7 +19,7 @@ class AnimeCatalogCache extends Model
     protected $casts = [
         'page' => 'int',
         'anime_ids' => 'array',
-        'cached_date' => 'date',
+        'cached_date' => 'immutable_date',
         'has_next_page' => 'boolean',
     ];
 }
