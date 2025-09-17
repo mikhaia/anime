@@ -1,0 +1,46 @@
+version: "3.9"
+
+services:
+  app:
+    build: ./docker/php
+    container_name: neanime-app
+    ports:
+      - "8080:80"           # http://localhost:8080
+    volumes:
+      - ./app:/var/www/html
+    depends_on:
+      - db
+    environment:
+      APACHE_DOCUMENT_ROOT: /var/www/html/public
+      PHP_OPCACHE_VALIDATE_TIMESTAMPS: "1"
+      PHP_DISPLAY_ERRORS: "1"
+      PHP_MEMORY_LIMIT: 256M
+
+  db:
+    image: mariadb:10.6
+    container_name: neanime-db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: neanime
+      MYSQL_USER: neanime
+      MYSQL_PASSWORD: secret
+      MYSQL_ROOT_PASSWORD: root
+    volumes:
+      - db_data:/var/lib/mysql
+    ports:
+      - "3307:3306"         # локально если нужно подключаться (localhost:3307)
+
+  pma:
+    image: phpmyadmin:latest
+    container_name: neanime-pma
+    restart: unless-stopped
+    environment:
+      PMA_HOST: db
+      PMA_USER: root
+      PMA_PASSWORD: root
+      UPLOAD_LIMIT: 256M
+    ports:
+      - "8081:80"           # http://localhost:8081
+
+volumes:
+  db_data:
