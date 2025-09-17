@@ -1,5 +1,5 @@
 (function () {
-    const API_BASE_URL = 'https://anilibria.top';
+    const APP_BASE_URL = window.location.origin;
 
     const authButton = document.querySelector('[data-auth-button]');
     const loginModal = document.querySelector('[data-login-modal]');
@@ -273,7 +273,7 @@
             id: release.id,
             title,
             poster: posterUrl || null,
-            type: release?.type?.description ?? null,
+            type: release?.type ?? null,
             year: release?.year ?? null,
             episodes: release?.episodes_total ?? null,
             alias: release?.alias ?? null,
@@ -474,8 +474,8 @@
     });
 
     const CATALOG_SORTING = {
-        top: 'RATING_DESC',
-        new: 'FRESH_AT_DESC',
+        top: true,
+        new: true,
     };
 
     function createAnimeCard(release) {
@@ -483,12 +483,8 @@
         card.className = 'anime-card';
         card.dataset.animeCard = 'true';
 
-        const title = release?.name?.main || release?.name?.alternative || 'Без названия';
-        const posterPath = release?.poster?.optimized?.preview
-            || release?.poster?.preview
-            || release?.poster?.src
-            || '';
-        const posterUrl = posterPath ? new URL(posterPath, API_BASE_URL).toString() : '';
+        const title = release?.title || 'Без названия';
+        const posterUrl = release?.poster_url || '';
 
         const favoritePayload = createFavoritePayload(release, title, posterUrl);
 
@@ -522,8 +518,8 @@
         overlay.appendChild(heading);
 
         const metaParts = [];
-        if (release?.type?.description) {
-            metaParts.push(release.type.description);
+        if (release?.type) {
+            metaParts.push(release.type);
         }
         if (release?.year) {
             metaParts.push(String(release.year));
@@ -591,19 +587,12 @@
         const moreButton = animeList.querySelector('[data-load-more]');
         const updateStatus = createStatusUpdater(statusElement);
 
-        const sorting = CATALOG_SORTING[mode];
-        if (!sorting) {
-            updateStatus('', { hidden: true });
-            return;
-        }
-
         let currentPage = 0;
         let loading = false;
         let hasNextPage = true;
 
         function buildApiUrl(page) {
-            const url = new URL('/api/v1/anime/catalog/releases', API_BASE_URL);
-            url.searchParams.set('f[sorting]', sorting);
+            const url = new URL(`/api/catalog/${encodeURIComponent(mode)}`, APP_BASE_URL);
             url.searchParams.set('page', String(page));
             return url.toString();
         }
@@ -616,7 +605,7 @@
 
             const payload = await response.json();
             const releases = Array.isArray(payload?.data) ? payload.data : [];
-            const hasNext = Boolean(payload?.meta?.pagination?.links?.next);
+            const hasNext = Boolean(payload?.meta?.has_next_page);
 
             return { releases, hasNext };
         }
@@ -724,8 +713,8 @@
         }
 
         function buildSearchUrl(query, page) {
-            const url = new URL('/api/v1/anime/catalog/releases', API_BASE_URL);
-            url.searchParams.set('search', query);
+            const url = new URL('/api/anime/search', APP_BASE_URL);
+            url.searchParams.set('query', query);
             url.searchParams.set('page', String(page));
             return url.toString();
         }
@@ -738,7 +727,7 @@
 
             const payload = await response.json();
             const releases = Array.isArray(payload?.data) ? payload.data : [];
-            const hasNext = Boolean(payload?.meta?.pagination?.links?.next);
+            const hasNext = Boolean(payload?.meta?.has_next_page);
 
             return { releases, hasNext };
         }

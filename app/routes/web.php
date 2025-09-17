@@ -130,6 +130,11 @@ $router->get('/watch/{identifier}', function (string $identifier) {
     ])->render();
 });
 
+$router->group(['prefix' => 'api'], function () use ($router) {
+    $router->get('catalog/{category}', 'AnimeController@catalog');
+    $router->get('anime/search', 'AnimeController@search');
+});
+
 $router->get('/register', 'AuthController@showRegister');
 $router->post('/register', 'AuthController@register');
 $router->post('/login', 'AuthController@login');
