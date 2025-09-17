@@ -8,7 +8,11 @@
         <p class="page-subtitle">Найдите любимые тайтлы по названию, жанру или году выхода.</p>
     </header>
     <section class="page-content page-content--wide">
-        <form class="mx-auto w-full max-w-3xl space-y-3" data-anime-search-form>
+        <form
+            class="mx-auto w-full max-w-3xl space-y-3"
+            action="{{ url('/list') }}"
+            method="GET"
+        >
             <label class="block text-sm font-medium text-slate-200" for="anime-search">Название аниме</label>
             <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
                 <div class="relative flex-1">
@@ -22,7 +26,6 @@
                         name="search"
                         placeholder="Например, Наруто, One Piece или Восхождение героя щита"
                         autocomplete="off"
-                        data-anime-search-input
                         required
                     >
                 </div>
@@ -33,10 +36,7 @@
                     Найти
                 </button>
             </div>
+            <input type="hidden" name="mode" value="search">
         </form>
-        <div class="search-results">
-            <h2 class="search-results__title">Результаты поиска</h2>
-            @include('components.anime-list', ['mode' => 'search'])
-        </div>
     </section>
 @endsection

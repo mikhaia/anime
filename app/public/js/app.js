@@ -677,9 +677,9 @@
         loadNextPage();
     }
 
-    function initSearch(form, animeList) {
-        const input = form.querySelector('[data-anime-search-input]');
-        if (!input) {
+    function initSearch(form, animeList, initialQuery = '') {
+        const input = form ? form.querySelector('[data-anime-search-input]') : null;
+        if (form && !input) {
             return;
         }
 
@@ -802,22 +802,24 @@
             }
         }
 
-        form.addEventListener('submit', (event) => {
-            event.preventDefault();
+        if (form && input) {
+            form.addEventListener('submit', (event) => {
+                event.preventDefault();
 
-            const query = String(input.value || '').trim();
-            if (query.length === 0) {
-                currentQuery = '';
+                const query = String(input.value || '').trim();
+                if (query.length === 0) {
+                    currentQuery = '';
+                    resetResults();
+                    updateStatus('Укажите поисковый запрос.', { showSpinner: false });
+                    return;
+                }
+
+                currentQuery = query;
                 resetResults();
-                updateStatus('Введите название аниме для поиска.', { showSpinner: false });
-                return;
-            }
-
-            currentQuery = query;
-            resetResults();
-            hasNextPage = true;
-            loadNextPage();
-        });
+                hasNextPage = true;
+                loadNextPage();
+            });
+        }
 
         if (moreButton) {
             moreButton.addEventListener('click', (event) => {
@@ -825,16 +827,27 @@
                 loadNextPage();
             });
         }
+
+        const preparedInitialQuery = String(initialQuery || '').trim();
+        if (preparedInitialQuery.length > 0) {
+            if (input) {
+                input.value = preparedInitialQuery;
+            }
+            currentQuery = preparedInitialQuery;
+            resetResults();
+            hasNextPage = true;
+            loadNextPage();
+        }
     }
 
     document.querySelectorAll('[data-anime-list]').forEach((listElement) => {
         initCatalogList(listElement);
     });
 
-    const searchForm = document.querySelector('[data-anime-search-form]');
     const searchResults = document.querySelector('[data-anime-search-results]');
-
-    if (searchForm && searchResults) {
-        initSearch(searchForm, searchResults);
+    if (searchResults) {
+        const searchForm = document.querySelector('[data-anime-search-form]');
+        const initialQuery = searchResults.getAttribute('data-search-query') || '';
+        initSearch(searchForm, searchResults, initialQuery);
     }
 })();

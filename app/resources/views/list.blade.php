@@ -4,15 +4,20 @@
 
 @php
     $mode = $mode ?? 'favorites';
+    $searchQuery = isset($searchQuery) ? trim((string) $searchQuery) : '';
     $titles = [
         'favorites' => 'Избранные тайтлы',
         'top' => 'Лучшее за сезон',
-        'new' => 'Свежие новинки'
+        'new' => 'Свежие новинки',
+        'search' => 'Результаты поиска'
     ];
     $subtitles = [
         'favorites' => 'Подборка тайтлов, к которым вы возвращаетесь снова и снова.',
         'top' => 'Самые просматриваемые и высоко оценённые сериалы.',
-        'new' => 'Последние релизы, за которыми стоит следить.'
+        'new' => 'Последние релизы, за которыми стоит следить.',
+        'search' => $searchQuery !== ''
+            ? "По запросу «{$searchQuery}»."
+            : 'Найдите любимые тайтлы по названию, жанру или году выхода.'
     ];
     $title = $titles[$mode] ?? $titles['favorites'];
     $subtitle = $subtitles[$mode] ?? $subtitles['favorites'];
@@ -23,8 +28,10 @@
         <h1 class="page-title">{{ $title }}</h1>
         <p class="page-subtitle">{{ $subtitle }}</p>
     </header>
-    <section class="page-content @if(in_array($mode, ['top', 'new'])) page-content--wide @endif">
-        @if(in_array($mode, ['top', 'new']))
+    <section class="page-content @if(in_array($mode, ['top', 'new', 'search'])) page-content--wide @endif">
+        @if($mode === 'search')
+            @include('components.anime-list', ['mode' => 'search', 'searchQuery' => $searchQuery])
+        @elseif(in_array($mode, ['top', 'new']))
             @include('components.anime-list', ['mode' => $mode])
         @elseif($mode === 'favorites')
             @if(!$currentUser)
