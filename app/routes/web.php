@@ -36,3 +36,8 @@ $router->get('/details', function () {
 $router->get('/watch', function () {
     return view('watch')->render();
 });
+
+$router->get('/register', 'AuthController@showRegister');
+$router->post('/register', 'AuthController@register');
+$router->post('/login', 'AuthController@login');
+$router->post('/logout', 'AuthController@logout');
