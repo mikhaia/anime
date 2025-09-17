@@ -12,6 +12,7 @@
             class="mx-auto w-full max-w-3xl space-y-3"
             action="{{ url('/list') }}"
             method="GET"
+            data-anime-search-form
         >
             <label class="block text-sm font-medium text-slate-200" for="anime-search">Название аниме</label>
             <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -26,7 +27,9 @@
                         name="search"
                         placeholder="Например, Наруто, One Piece или Восхождение героя щита"
                         autocomplete="off"
+                        value="{{ $searchQuery ?? '' }}"
                         required
+                        data-anime-search-input
                     >
                 </div>
                 <button
@@ -38,5 +41,8 @@
             </div>
             <input type="hidden" name="mode" value="search">
         </form>
+    </section>
+    <section class="page-content page-content--wide">
+        @include('components.anime-list', ['mode' => 'search', 'searchQuery' => $searchQuery ?? ''])
     </section>
 @endsection

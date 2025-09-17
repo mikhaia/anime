@@ -1,5 +1,7 @@
 (function () {
     const APP_BASE_URL = window.location.origin;
+    const ANILIBRIA_BASE_URL = 'https://anilibria.top';
+    const ANILIBRIA_SEARCH_URL = `${ANILIBRIA_BASE_URL}/api/v1/app/search/releases`;
 
     const authButton = document.querySelector('[data-auth-button]');
     const loginModal = document.querySelector('[data-login-modal]');
@@ -712,10 +714,114 @@
             }
         }
 
+        function ensureAbsoluteImageUrl(url) {
+            if (typeof url !== 'string') {
+                return '';
+            }
+
+            const trimmed = url.trim();
+            if (trimmed === '') {
+                return '';
+            }
+
+            if (/^https?:\/\//i.test(trimmed)) {
+                return trimmed;
+            }
+
+            if (trimmed.startsWith('//')) {
+                return `https:${trimmed}`;
+            }
+
+            if (trimmed.startsWith('/')) {
+                return `${ANILIBRIA_BASE_URL}${trimmed}`;
+            }
+
+            return `${ANILIBRIA_BASE_URL}/${trimmed}`;
+        }
+
+        function normalizeSearchRelease(release) {
+            if (!release || typeof release !== 'object') {
+                return null;
+            }
+
+            const id = release.id ?? null;
+            if (id === null) {
+                return null;
+            }
+
+            const titleCandidates = [
+                typeof release.title === 'string' ? release.title : null,
+                release?.name?.main ?? null,
+                release?.name?.english ?? null,
+                release?.name?.alternative ?? null,
+            ];
+
+            const title = titleCandidates.find((value) => typeof value === 'string' && value.trim().length > 0) ||
+                'Без названия';
+
+            const posterCandidates = [
+                release.poster_url ?? null,
+                release?.poster?.optimized?.preview ?? null,
+                release?.poster?.optimized?.src ?? null,
+                release?.poster?.optimized?.thumbnail ?? null,
+                release?.poster?.preview ?? null,
+                release?.poster?.src ?? null,
+                release?.poster?.thumbnail ?? null,
+            ];
+
+            const poster = posterCandidates.find((value) => typeof value === 'string' && value.trim().length > 0) || '';
+            const posterUrl = ensureAbsoluteImageUrl(poster);
+            const fallbackPoster =
+                typeof release.poster_url === 'string' && release.poster_url.trim().length > 0
+                    ? release.poster_url.trim()
+                    : '';
+            const normalizedPoster = posterUrl || ensureAbsoluteImageUrl(fallbackPoster);
+            const finalPoster = normalizedPoster && normalizedPoster.trim().length > 0 ? normalizedPoster : null;
+
+            let type = release.type ?? null;
+            if (type && typeof type === 'object') {
+                type = type.description || type.value || null;
+            }
+            if (typeof type === 'string') {
+                type = type.trim();
+            }
+            if (type === '') {
+                type = null;
+            }
+
+            const yearValue = release.year ?? null;
+            const parsedYear = typeof yearValue === 'number'
+                ? yearValue
+                : Number.parseInt(String(yearValue ?? '').trim(), 10);
+            const normalizedYear = Number.isNaN(parsedYear) ? null : parsedYear;
+
+            const episodesValue = release.episodes_total ?? null;
+            const parsedEpisodes = typeof episodesValue === 'number'
+                ? episodesValue
+                : Number.parseInt(String(episodesValue ?? '').trim(), 10);
+            const normalizedEpisodes = Number.isNaN(parsedEpisodes) ? null : parsedEpisodes;
+
+            const alias = typeof release.alias === 'string' && release.alias.trim().length > 0
+                ? release.alias.trim()
+                : null;
+
+            return {
+                id,
+                title,
+                poster_url: finalPoster,
+                type,
+                year: normalizedYear,
+                episodes_total: normalizedEpisodes,
+                alias,
+            };
+        }
+
         function buildSearchUrl(query, page) {
-            const url = new URL('/api/anime/search', APP_BASE_URL);
+            const url = new URL(ANILIBRIA_SEARCH_URL);
             url.searchParams.set('query', query);
-            url.searchParams.set('page', String(page));
+            if (page > 1) {
+                url.searchParams.set('page', String(page));
+            }
             return url.toString();
         }
 
@@ -726,8 +832,20 @@
             }
 
             const payload = await response.json();
-            const releases = Array.isArray(payload?.data) ? payload.data : [];
-            const hasNext = Boolean(payload?.meta?.has_next_page);
+            let rawReleases = [];
+            let hasNext = false;
+
+            if (Array.isArray(payload?.data)) {
+                rawReleases = payload.data;
+                hasNext = Boolean(payload?.meta?.has_next_page);
+            } else if (Array.isArray(payload)) {
+                rawReleases = payload;
+                hasNext = false;
+            }
+
+            const releases = rawReleases
+                .map((item) => normalizeSearchRelease(item))
+                .filter(Boolean);
 
             return { releases, hasNext };
         }
