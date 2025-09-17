@@ -12,58 +12,70 @@
             <input type="hidden" name="redirect" value="/">
             <div class="form-field">
                 <label class="form-label" for="register-name">Имя</label>
-                <input
-                    class="form-input"
-                    type="text"
-                    id="register-name"
-                    name="name"
-                    autocomplete="name"
-                    value="{{ $old['name'] ?? '' }}"
-                    required
-                >
+                <div class="form-input-wrapper">
+                    <span class="form-input-icon material-symbols-outlined">person</span>
+                    <input
+                        class="form-input"
+                        type="text"
+                        id="register-name"
+                        name="name"
+                        autocomplete="name"
+                        value="{{ $old['name'] ?? '' }}"
+                        required
+                    >
+                </div>
                 @if(!empty($errors['name']))
                     <p class="form-message form-message--error">{{ $errors['name'] }}</p>
                 @endif
             </div>
             <div class="form-field">
                 <label class="form-label" for="register-email">Email</label>
-                <input
-                    class="form-input"
-                    type="email"
-                    id="register-email"
-                    name="email"
-                    autocomplete="email"
-                    value="{{ $old['email'] ?? '' }}"
-                    required
-                >
+                <div class="form-input-wrapper">
+                    <span class="form-input-icon material-symbols-outlined">mail</span>
+                    <input
+                        class="form-input"
+                        type="email"
+                        id="register-email"
+                        name="email"
+                        autocomplete="email"
+                        value="{{ $old['email'] ?? '' }}"
+                        required
+                    >
+                </div>
                 @if(!empty($errors['email']))
                     <p class="form-message form-message--error">{{ $errors['email'] }}</p>
                 @endif
             </div>
             <div class="form-field">
                 <label class="form-label" for="register-password">Пароль</label>
-                <input
-                    class="form-input"
-                    type="password"
-                    id="register-password"
-                    name="password"
-                    autocomplete="new-password"
-                    required
-                >
+                <div class="form-input-wrapper">
+                    <span class="form-input-icon material-symbols-outlined">lock</span>
+                    <input
+                        class="form-input"
+                        type="password"
+                        id="register-password"
+                        name="password"
+                        autocomplete="new-password"
+                        required
+                    >
+                </div>
                 @if(!empty($errors['password']))
                     <p class="form-message form-message--error">{{ $errors['password'] }}</p>
                 @endif
             </div>
             <div class="form-field">
                 <label class="form-label" for="register-password-confirm">Повторите пароль</label>
-                <input
-                    class="form-input"
-                    type="password"
-                    id="register-password-confirm"
-                    name="password_confirmation"
-                    autocomplete="new-password"
-                    required
-                >
+                <div class="form-input-wrapper">
+                    <span class="form-input-icon material-symbols-outlined">key</span>
+                    <input
+                        class="form-input"
+                        type="password"
+                        id="register-password-confirm"
+                        name="password_confirmation"
+                        autocomplete="new-password"
+                        required
+                    >
+                </div>
                 @if(!empty($errors['password_confirmation']))
                     <p class="form-message form-message--error">{{ $errors['password_confirmation'] }}</p>
                 @endif
