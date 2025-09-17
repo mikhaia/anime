@@ -64,9 +64,9 @@
                 <span class="material-symbols-outlined">logout</span>
                 <span>{{ $currentUser ? 'Выйти' : 'Войти' }}</span>
             </button>
-            <button class="nav-button" type="button">
-                <span class="material-symbols-outlined">fullscreen</span>
-                <span>Полный экран / Обычный</span>
+            <button class="nav-button" type="button" data-fullscreen-button>
+                <span class="material-symbols-outlined" data-fullscreen-icon>fullscreen</span>
+                <span data-fullscreen-text>Полный экран</span>
             </button>
         </div>
     </nav>

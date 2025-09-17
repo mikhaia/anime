@@ -6,6 +6,9 @@
     const loginForm = document.querySelector('[data-login-form]');
     const logoutForm = document.querySelector('[data-logout-form]');
     const modalCloseControls = loginModal ? loginModal.querySelectorAll('[data-modal-close]') : [];
+    const fullscreenButton = document.querySelector('[data-fullscreen-button]');
+    const fullscreenIcon = fullscreenButton ? fullscreenButton.querySelector('[data-fullscreen-icon]') : null;
+    const fullscreenText = fullscreenButton ? fullscreenButton.querySelector('[data-fullscreen-text]') : null;
 
     function openLoginModal() {
         if (!loginModal) {
@@ -80,6 +83,101 @@
             closeLoginModal();
         }
     });
+
+    function getFullscreenElement() {
+        return (
+            document.fullscreenElement ||
+            document.webkitFullscreenElement ||
+            document.mozFullScreenElement ||
+            document.msFullscreenElement ||
+            null
+        );
+    }
+
+    function ensurePromise(result) {
+        if (result && typeof result.then === 'function') {
+            return result;
+        }
+
+        return Promise.resolve();
+    }
+
+    function requestFullscreen(element) {
+        if (!element) {
+            return Promise.reject(new Error('Element is not available for fullscreen'));
+        }
+
+        const request =
+            element.requestFullscreen ||
+            element.webkitRequestFullscreen ||
+            element.mozRequestFullScreen ||
+            element.msRequestFullscreen ||
+            null;
+
+        if (request) {
+            return ensurePromise(request.call(element));
+        }
+
+        return Promise.reject(new Error('Fullscreen API is not supported'));
+    }
+
+    function exitFullscreen() {
+        const exit =
+            document.exitFullscreen ||
+            document.webkitExitFullscreen ||
+            document.mozCancelFullScreen ||
+            document.msExitFullscreen ||
+            null;
+
+        if (exit) {
+            return ensurePromise(exit.call(document));
+        }
+
+        return Promise.reject(new Error('Fullscreen API is not supported'));
+    }
+
+    function updateFullscreenButtonState() {
+        const isActive = Boolean(getFullscreenElement());
+
+        if (fullscreenButton) {
+            fullscreenButton.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+            fullscreenButton.setAttribute('aria-label', isActive ? 'Выйти из полноэкранного режима' : 'Перейти в полноэкранный режим');
+        }
+
+        if (fullscreenIcon) {
+            fullscreenIcon.textContent = isActive ? 'fullscreen_exit' : 'fullscreen';
+        }
+
+        if (fullscreenText) {
+            fullscreenText.textContent = isActive ? 'Обычный режим' : 'Полный экран';
+        }
+    }
+
+    function toggleFullscreen() {
+        if (getFullscreenElement()) {
+            exitFullscreen().catch(() => {
+                // Ignore errors when exiting fullscreen
+            });
+        } else {
+            requestFullscreen(document.documentElement).catch(() => {
+                // Ignore errors when entering fullscreen
+            });
+        }
+    }
+
+    if (fullscreenButton) {
+        fullscreenButton.addEventListener('click', (event) => {
+            event.preventDefault();
+            toggleFullscreen();
+        });
+    }
+
+    document.addEventListener('fullscreenchange', updateFullscreenButtonState);
+    document.addEventListener('webkitfullscreenchange', updateFullscreenButtonState);
+    document.addEventListener('mozfullscreenchange', updateFullscreenButtonState);
+    document.addEventListener('MSFullscreenChange', updateFullscreenButtonState);
+
+    updateFullscreenButtonState();
 
     const bodyElement = document.body;
     const initialFavoriteIds = (() => {
