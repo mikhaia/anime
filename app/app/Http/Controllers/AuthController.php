@@ -127,13 +127,50 @@ class AuthController extends Controller
         }
 
         if (str_starts_with($redirect, 'http://') || str_starts_with($redirect, 'https://')) {
-            $appUrl = rtrim((string) env('APP_URL', ''), '/');
-            if ($appUrl !== '' && str_starts_with($redirect, $appUrl)) {
-                $redirect = substr($redirect, strlen($appUrl));
-                $redirect = $redirect === '' ? '/' : $redirect;
-            } else {
+            $appUrl = (string) env('APP_URL', '');
+            $redirectParts = parse_url($redirect) ?: [];
+
+            if (empty($redirectParts['host'])) {
                 return '/';
             }
+
+            $allowedHost = '';
+            $allowedScheme = null;
+            $allowedPort = null;
+
+            if ($appUrl !== '') {
+                $appParts = parse_url($appUrl) ?: [];
+                $allowedHost = strtolower((string) ($appParts['host'] ?? ''));
+                $allowedScheme = $appParts['scheme'] ?? null;
+                $allowedPort = $appParts['port'] ?? null;
+            } else {
+                $allowedHost = strtolower($request->getHost());
+                $allowedScheme = $request->getScheme();
+                $allowedPort = $request->getPort();
+            }
+
+            $targetHost = strtolower((string) $redirectParts['host']);
+            $targetScheme = $redirectParts['scheme'] ?? null;
+            $targetPort = $redirectParts['port'] ?? null;
+
+            if ($allowedHost !== '' && $targetHost !== $allowedHost) {
+                return '/';
+            }
+
+            if ($allowedScheme !== null && $targetScheme !== null && $allowedScheme !== $targetScheme) {
+                return '/';
+            }
+
+            if ($allowedPort !== null && $targetPort !== null && $allowedPort !== $targetPort) {
+                return '/';
+            }
+
+            $path = $redirectParts['path'] ?? '/';
+            $path = $path === '' ? '/' : $path;
+            $query = isset($redirectParts['query']) ? '?' . $redirectParts['query'] : '';
+            $fragment = isset($redirectParts['fragment']) ? '#' . $redirectParts['fragment'] : '';
+
+            $redirect = $path . $query . $fragment;
         }
 
         return str_starts_with($redirect, '/') ? $redirect : '/' . ltrim($redirect, '/');
