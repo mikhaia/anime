@@ -14,7 +14,12 @@
     </header>
     <section class="page-content page-content--wide">
         @if($activeEpisode)
-            <div class="watch-layout">
+            <div
+                class="watch-layout"
+                data-watch-anime
+                data-anime-id="{{ $anime->getKey() }}"
+                data-active-episode-number="{{ $activeEpisode['number'] ?? '' }}"
+            >
                 <div class="watch-player">
                     <div class="watch-player__video-wrapper">
                         <video
@@ -76,6 +81,12 @@
         document.addEventListener('DOMContentLoaded', () => {
             const player = document.querySelector('[data-watch-player]');
             const playlistItems = Array.from(document.querySelectorAll('[data-episode-item]'));
+            const watchContainer = document.querySelector('[data-watch-anime]');
+            const animeId = watchContainer?.dataset?.animeId;
+            const initialEpisodeNumber = Number.parseInt(watchContainer?.dataset?.activeEpisodeNumber ?? '', 10);
+            let isAuthenticated = document.body?.dataset?.authenticated === 'true';
+            let lastSavedEpisode = Number.isFinite(initialEpisodeNumber) ? initialEpisodeNumber : null;
+            let saveInFlight = null;
 
             if (!player || playlistItems.length === 0) {
                 return;
@@ -119,6 +130,7 @@
                 });
 
                 const { episodeTitle, episodeDescription, episodeDuration, episodeStream } = item.dataset;
+                const episodeNumber = Number.parseInt(item.dataset.episodeNumber ?? '', 10);
 
                 if (titleElement) {
                     titleElement.textContent = episodeTitle || '';
@@ -133,6 +145,77 @@
                 }
 
                 loadStream(episodeStream);
+                rememberEpisode(episodeNumber);
+            }
+
+            function rememberEpisode(episodeNumber) {
+                if (!animeId || !Number.isFinite(episodeNumber)) {
+                    return;
+                }
+
+                if (!isAuthenticated) {
+                    return;
+                }
+
+                if (episodeNumber === lastSavedEpisode && !saveInFlight) {
+                    return;
+                }
+
+                if (saveInFlight) {
+                    saveInFlight.abort();
+                    saveInFlight = null;
+                }
+
+                const controller = new AbortController();
+                saveInFlight = controller;
+
+                fetch('/watch-progress', {
+                    method: 'POST',
+                    headers: {
+                        Accept: 'application/json',
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({
+                        anime_id: Number.parseInt(animeId, 10),
+                        episode_number: episodeNumber,
+                    }),
+                    signal: controller.signal,
+                })
+                    .then((response) => {
+                        if (response.status === 401) {
+                            isAuthenticated = false;
+                            return null;
+                        }
+
+                        if (!response.ok) {
+                            throw new Error(`Request failed with status ${response.status}`);
+                        }
+
+                        return response.json();
+                    })
+                    .then((payload) => {
+                        if (!payload) {
+                            return;
+                        }
+
+                        if (Number.isFinite(payload?.progress?.episode_number)) {
+                            lastSavedEpisode = payload.progress.episode_number;
+                        } else {
+                            lastSavedEpisode = episodeNumber;
+                        }
+                    })
+                    .catch((error) => {
+                        if (error.name !== 'AbortError') {
+                            console.warn('Failed to save watch progress', error);
+                        }
+                    })
+                    .finally(() => {
+                        if (saveInFlight === controller) {
+                            saveInFlight = null;
+                        }
+                    });
             }
 
             playlistItems.forEach((item) => {

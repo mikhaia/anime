@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Anime;
+use App\Models\WatchProgress;
 use App\Support\Auth;
 use Illuminate\Http\Request;
 
@@ -84,10 +85,27 @@ $router->get('/watch/{identifier}', function (string $identifier) {
         ];
     }
 
+    $activeEpisode = $episodes[0] ?? null;
+
+    $user = Auth::user();
+    if ($user) {
+        $progress = WatchProgress::query()
+            ->where('user_id', $user->getKey())
+            ->where('anime_id', $anime->getKey())
+            ->first();
+
+        if ($progress) {
+            $progressEpisode = collect($episodes)->firstWhere('number', (int) $progress->episode_number);
+            if ($progressEpisode) {
+                $activeEpisode = $progressEpisode;
+            }
+        }
+    }
+
     return view('watch', [
         'anime' => $anime,
         'episodes' => $episodes,
-        'activeEpisode' => $episodes[0] ?? null,
+        'activeEpisode' => $activeEpisode,
     ])->render();
 });
 
@@ -97,3 +115,4 @@ $router->post('/login', 'AuthController@login');
 $router->post('/logout', 'AuthController@logout');
 $router->post('/favorites', 'FavoriteController@store');
 $router->delete('/favorites/{animeId:[0-9]+}', 'FavoriteController@destroy');
+$router->post('/watch-progress', 'WatchProgressController@store');

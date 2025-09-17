@@ -39,4 +39,9 @@ class User extends Model implements AuthenticatableContract, AuthorizableContrac
     {
         return $this->hasMany(Favorite::class);
     }
+
+    public function watchProgress(): HasMany
+    {
+        return $this->hasMany(WatchProgress::class);
+    }
 }
