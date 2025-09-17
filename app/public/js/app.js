@@ -1,4 +1,6 @@
 (function () {
+    const API_BASE_URL = 'https://anilibria.top';
+
     const authButton = document.querySelector('[data-auth-button]');
     const loginModal = document.querySelector('[data-login-modal]');
     const loginForm = document.querySelector('[data-login-form]');
@@ -79,33 +81,68 @@
         }
     });
 
-    const animeList = document.querySelector('[data-anime-list]');
-    if (animeList) {
-        const mode = animeList.dataset.mode || '';
-        const grid = animeList.querySelector('[data-anime-grid]');
-        const statusElement = animeList.querySelector('[data-anime-status]');
-        const moreButton = animeList.querySelector('[data-load-more]');
+    const CATALOG_SORTING = {
+        top: 'RATING_DESC',
+        new: 'FRESH_AT_DESC'
+    };
 
-        const SORTING = {
-            top: 'RATING_DESC',
-            new: 'FRESH_AT_DESC',
-        };
+    function createAnimeCard(release) {
+        const card = document.createElement('article');
+        card.className = 'anime-card';
 
-        const API_BASE_URL = 'https://anilibria.top';
+        const title = release?.name?.main || release?.name?.alternative || 'Без названия';
+        const posterPath = release?.poster?.optimized?.preview
+            || release?.poster?.preview
+            || release?.poster?.src
+            || '';
 
-        function buildApiUrl(page) {
-            const sorting = SORTING[mode];
-            if (!sorting) {
-                return '';
-            }
-
-            const url = new URL('/api/v1/anime/catalog/releases', API_BASE_URL);
-            url.searchParams.set('f[sorting]', sorting);
-            url.searchParams.set('page', String(page));
-            return url.toString();
+        if (posterPath) {
+            const poster = document.createElement('img');
+            poster.className = 'anime-card__image';
+            poster.loading = 'lazy';
+            poster.decoding = 'async';
+            poster.alt = `Постер аниме «${title}»`;
+            poster.src = new URL(posterPath, API_BASE_URL).toString();
+            card.appendChild(poster);
+        } else {
+            const placeholder = document.createElement('div');
+            placeholder.className = 'anime-card__placeholder';
+            placeholder.textContent = 'Нет постера';
+            card.appendChild(placeholder);
         }
 
-        function updateStatus(message, options = {}) {
+        const overlay = document.createElement('div');
+        overlay.className = 'anime-card__overlay';
+
+        const heading = document.createElement('h3');
+        heading.className = 'anime-card__title';
+        heading.textContent = title;
+        overlay.appendChild(heading);
+
+        const metaParts = [];
+        if (release?.type?.description) {
+            metaParts.push(release.type.description);
+        }
+        if (release?.year) {
+            metaParts.push(String(release.year));
+        }
+        if (release?.episodes_total) {
+            metaParts.push(`${release.episodes_total} эп.`);
+        }
+
+        if (metaParts.length > 0) {
+            const meta = document.createElement('p');
+            meta.className = 'anime-card__meta';
+            meta.textContent = metaParts.join(' • ');
+            overlay.appendChild(meta);
+        }
+
+        card.appendChild(overlay);
+        return card;
+    }
+
+    function createStatusUpdater(statusElement) {
+        return function updateStatus(message, options = {}) {
             if (!statusElement) {
                 return;
             }
@@ -127,70 +164,39 @@
             if (spinner) {
                 spinner.style.display = showSpinner ? '' : 'none';
             }
+        };
+    }
+
+    function initCatalogList(animeList) {
+        const mode = animeList.dataset.mode || '';
+        if (!Object.prototype.hasOwnProperty.call(CATALOG_SORTING, mode)) {
+            return;
         }
 
-        function createCard(release) {
-            const card = document.createElement('article');
-            card.className = 'anime-card';
+        const grid = animeList.querySelector('[data-anime-grid]');
+        const statusElement = animeList.querySelector('[data-anime-status]');
+        const moreButton = animeList.querySelector('[data-load-more]');
+        const updateStatus = createStatusUpdater(statusElement);
 
-            const title = release?.name?.main || release?.name?.alternative || 'Без названия';
-            const posterPath = release?.poster?.optimized?.preview
-                || release?.poster?.preview
-                || release?.poster?.src
-                || '';
+        const sorting = CATALOG_SORTING[mode];
+        if (!sorting) {
+            updateStatus('', { hidden: true });
+            return;
+        }
 
-            if (posterPath) {
-                const poster = document.createElement('img');
-                poster.className = 'anime-card__image';
-                poster.loading = 'lazy';
-                poster.decoding = 'async';
-                poster.alt = `Постер аниме «${title}»`;
-                poster.src = new URL(posterPath, API_BASE_URL).toString();
-                card.appendChild(poster);
-            } else {
-                const placeholder = document.createElement('div');
-                placeholder.className = 'anime-card__placeholder';
-                placeholder.textContent = 'Нет постера';
-                card.appendChild(placeholder);
-            }
+        let currentPage = 0;
+        let loading = false;
+        let hasNextPage = true;
 
-            const overlay = document.createElement('div');
-            overlay.className = 'anime-card__overlay';
-
-            const heading = document.createElement('h3');
-            heading.className = 'anime-card__title';
-            heading.textContent = title;
-            overlay.appendChild(heading);
-
-            const metaParts = [];
-            if (release?.type?.description) {
-                metaParts.push(release.type.description);
-            }
-            if (release?.year) {
-                metaParts.push(String(release.year));
-            }
-            if (release?.episodes_total) {
-                metaParts.push(`${release.episodes_total} эп.`);
-            }
-
-            if (metaParts.length > 0) {
-                const meta = document.createElement('p');
-                meta.className = 'anime-card__meta';
-                meta.textContent = metaParts.join(' • ');
-                overlay.appendChild(meta);
-            }
-
-            card.appendChild(overlay);
-            return card;
+        function buildApiUrl(page) {
+            const url = new URL('/api/v1/anime/catalog/releases', API_BASE_URL);
+            url.searchParams.set('f[sorting]', sorting);
+            url.searchParams.set('page', String(page));
+            return url.toString();
         }
 
         async function fetchPage(page) {
-            const url = buildApiUrl(page);
-            if (!url) {
-                return { releases: [], hasNext: false };
-            }
-
-            const response = await fetch(url);
+            const response = await fetch(buildApiUrl(page));
             if (!response.ok) {
                 throw new Error(`Request failed with status ${response.status}`);
             }
@@ -201,15 +207,6 @@
 
             return { releases, hasNext };
         }
-
-        if (!SORTING[mode]) {
-            updateStatus('', { hidden: true });
-            return;
-        }
-
-        let currentPage = 0;
-        let loading = false;
-        let hasNextPage = true;
 
         async function loadNextPage() {
             if (loading || !hasNextPage) {
@@ -235,7 +232,7 @@
                 if (grid) {
                     grid.hidden = false;
                     releases.forEach((release) => {
-                        grid.appendChild(createCard(release));
+                        grid.appendChild(createAnimeCard(release));
                     });
                 }
 
@@ -276,5 +273,166 @@
         }
 
         loadNextPage();
+    }
+
+    function initSearch(form, animeList) {
+        const input = form.querySelector('[data-anime-search-input]');
+        if (!input) {
+            return;
+        }
+
+        const grid = animeList.querySelector('[data-anime-grid]');
+        const statusElement = animeList.querySelector('[data-anime-status]');
+        const moreButton = animeList.querySelector('[data-load-more]');
+        const updateStatus = createStatusUpdater(statusElement);
+
+        let currentQuery = '';
+        let currentPage = 0;
+        let hasNextPage = false;
+        let loading = false;
+        let activeRequestId = 0;
+
+        function resetResults() {
+            activeRequestId += 1;
+
+            if (grid) {
+                grid.innerHTML = '';
+                grid.hidden = true;
+            }
+
+            currentPage = 0;
+            hasNextPage = false;
+            loading = false;
+
+            if (moreButton) {
+                moreButton.hidden = true;
+                moreButton.disabled = false;
+            }
+        }
+
+        function buildSearchUrl(query, page) {
+            const url = new URL('/api/v1/anime/catalog/releases', API_BASE_URL);
+            url.searchParams.set('search', query);
+            url.searchParams.set('page', String(page));
+            return url.toString();
+        }
+
+        async function fetchSearchPage(query, page) {
+            const response = await fetch(buildSearchUrl(query, page));
+            if (!response.ok) {
+                throw new Error(`Request failed with status ${response.status}`);
+            }
+
+            const payload = await response.json();
+            const releases = Array.isArray(payload?.data) ? payload.data : [];
+            const hasNext = Boolean(payload?.meta?.pagination?.links?.next);
+
+            return { releases, hasNext };
+        }
+
+        async function loadNextPage() {
+            if (loading || !hasNextPage) {
+                return;
+            }
+
+            const requestId = ++activeRequestId;
+            const query = currentQuery;
+            loading = true;
+            const nextPage = currentPage + 1;
+            updateStatus(nextPage === 1 ? `Ищем «${query}»…` : 'Загружаем ещё результаты…', { showSpinner: true });
+            if (moreButton) {
+                moreButton.disabled = true;
+            }
+
+            try {
+                const { releases, hasNext } = await fetchSearchPage(query, nextPage);
+
+                if (requestId !== activeRequestId || query !== currentQuery) {
+                    return;
+                }
+
+                if (nextPage === 1 && releases.length === 0) {
+                    updateStatus(`Мы не нашли тайтлов по запросу «${query}».`, { showSpinner: false });
+                    hasNextPage = false;
+                    return;
+                }
+
+                if (grid) {
+                    grid.hidden = false;
+                    releases.forEach((release) => {
+                        grid.appendChild(createAnimeCard(release));
+                    });
+                }
+
+                currentPage = nextPage;
+                hasNextPage = hasNext;
+
+                if (hasNextPage) {
+                    updateStatus('', { hidden: true });
+                    if (moreButton) {
+                        moreButton.hidden = false;
+                        moreButton.disabled = false;
+                    }
+                } else {
+                    updateStatus('', { hidden: true });
+                    if (moreButton) {
+                        moreButton.hidden = true;
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to search anime', error);
+                if (requestId !== activeRequestId || query !== currentQuery) {
+                    return;
+                }
+
+                updateStatus('Не удалось выполнить поиск. Попробуйте ещё раз позже.', { showSpinner: false });
+                hasNextPage = false;
+                if (moreButton) {
+                    moreButton.hidden = true;
+                }
+            } finally {
+                if (requestId === activeRequestId) {
+                    loading = false;
+                    if (moreButton) {
+                        moreButton.disabled = false;
+                    }
+                }
+            }
+        }
+
+        form.addEventListener('submit', (event) => {
+            event.preventDefault();
+
+            const query = String(input.value || '').trim();
+            if (query.length === 0) {
+                currentQuery = '';
+                resetResults();
+                updateStatus('Введите название аниме для поиска.', { showSpinner: false });
+                return;
+            }
+
+            currentQuery = query;
+            resetResults();
+            hasNextPage = true;
+            loadNextPage();
+        });
+
+        if (moreButton) {
+            moreButton.addEventListener('click', (event) => {
+                event.preventDefault();
+                loadNextPage();
+            });
+        }
+    }
+
+    document.querySelectorAll('[data-anime-list]').forEach((listElement) => {
+        initCatalogList(listElement);
+    });
+
+    const searchForm = document.querySelector('[data-anime-search-form]');
+    const searchResults = document.querySelector('[data-anime-search-results]');
+
+    if (searchForm && searchResults) {
+        initSearch(searchForm, searchResults);
     }
 })();
