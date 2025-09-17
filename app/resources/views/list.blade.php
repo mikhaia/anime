@@ -56,18 +56,27 @@
                             ];
                         @endphp
                         <article class="anime-card" data-anime-card data-anime-id="{{ $anime->getKey() }}">
-                            @if($anime->poster_url)
-                                <img class="anime-card__image" src="{{ $anime->poster_url }}"
-                                     alt="Постер аниме «{{ $anime->title }}»" loading="lazy" decoding="async">
-                            @else
-                                <div class="anime-card__placeholder">Нет постера</div>
-                            @endif
-                            <div class="anime-card__overlay">
-                                <h3 class="anime-card__title">{{ $anime->title }}</h3>
-                                @if(!empty($metaParts))
-                                    <p class="anime-card__meta">{{ implode(' • ', $metaParts) }}</p>
+                            @php
+                                $watchUrl = url('/watch/' . ($anime->alias ?: $anime->getKey()));
+                            @endphp
+                            <a
+                                class="anime-card__link"
+                                href="{{ $watchUrl }}"
+                                aria-label="Открыть просмотр «{{ $anime->title }}»"
+                            >
+                                @if($anime->poster_url)
+                                    <img class="anime-card__image" src="{{ $anime->poster_url }}"
+                                         alt="Постер аниме «{{ $anime->title }}»" loading="lazy" decoding="async">
+                                @else
+                                    <div class="anime-card__placeholder">Нет постера</div>
                                 @endif
-                            </div>
+                                <div class="anime-card__overlay">
+                                    <h3 class="anime-card__title">{{ $anime->title }}</h3>
+                                    @if(!empty($metaParts))
+                                        <p class="anime-card__meta">{{ implode(' • ', $metaParts) }}</p>
+                                    @endif
+                                </div>
+                            </a>
                             <button
                                 class="anime-card__favorite anime-card__favorite--active"
                                 type="button"
