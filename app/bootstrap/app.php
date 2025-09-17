@@ -60,6 +60,7 @@ $app->singleton(
 */
 
 $app->configure('app');
+$app->configure('database');
 
 /*
 |--------------------------------------------------------------------------
@@ -72,9 +73,9 @@ $app->configure('app');
 |
 */
 
-// $app->middleware([
-//     App\Http\Middleware\ExampleMiddleware::class
-// ]);
+$app->middleware([
+    App\Http\Middleware\StartSession::class,
+]);
 
 // $app->routeMiddleware([
 //     'auth' => App\Http\Middleware\Authenticate::class,
@@ -93,6 +94,7 @@ $app->configure('app');
 
 $app->configure('view');
 $app->register(Illuminate\View\ViewServiceProvider::class);
+$app->register(Illuminate\Hashing\HashServiceProvider::class);
 $app->alias('view', Illuminate\Contracts\View\Factory::class);
 $app->alias('view', Illuminate\Contracts\View\View::class);
 
