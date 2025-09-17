@@ -355,6 +355,66 @@ main {
     color: rgba(226, 232, 240, 0.75);
 }
 
+.anime-card__favorite {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.35rem 0.8rem;
+    border-radius: 999px;
+    border: 1px solid rgba(248, 113, 113, 0.4);
+    background: rgba(15, 23, 42, 0.8);
+    color: rgba(226, 232, 240, 0.85);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+.anime-card__favorite:hover,
+.anime-card__favorite:focus-visible {
+    outline: none;
+    border-color: rgba(248, 113, 113, 0.65);
+    background: rgba(248, 113, 113, 0.18);
+    color: #fca5a5;
+}
+
+.anime-card__favorite:disabled {
+    opacity: 0.65;
+    cursor: default;
+}
+
+.anime-card__favorite-icon {
+    font-size: 1rem;
+    transition: font-variation-settings 0.2s ease, color 0.2s ease;
+    font-variation-settings:
+        'FILL' 0,
+        'wght' 500,
+        'GRAD' 0,
+        'opsz' 24;
+}
+
+.anime-card__favorite--active {
+    background: rgba(239, 68, 68, 0.22);
+    border-color: rgba(248, 113, 113, 0.8);
+    color: #fca5a5;
+}
+
+.anime-card__favorite--active .anime-card__favorite-icon,
+.anime-card__favorite-icon--active {
+    font-variation-settings:
+        'FILL' 1,
+        'wght' 600,
+        'GRAD' 0,
+        'opsz' 24;
+}
+
+.anime-card__favorite-text {
+    white-space: nowrap;
+}
+
 .anime-list__more {
     align-self: center;
     display: inline-flex;
