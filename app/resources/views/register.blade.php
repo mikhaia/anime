@@ -8,14 +8,13 @@
         <p class="page-subtitle">Введите данные, чтобы зарегистрироваться и начать пользоваться сервисом.</p>
     </header>
     <section class="page-content page-auth">
-        <form class="auth-form" method="POST" action="{{ url('/register') }}">
-            <input type="hidden" name="redirect" value="/">
-            <div class="form-field">
-                <label class="form-label" for="register-name">Имя</label>
-                <div class="form-input-wrapper">
-                    <span class="form-input-icon material-symbols-outlined">person</span>
+        <div class="overflow-hidden rounded-2xl border border-slate-700 bg-slate-900 shadow-2xl">
+            <form class="space-y-6 p-8" method="POST" action="{{ url('/register') }}">
+                <input type="hidden" name="redirect" value="/">
+                <div class="space-y-2">
+                    <label class="block text-sm font-semibold text-slate-200" for="register-name">Имя</label>
                     <input
-                        class="form-input"
+                        class="block w-full rounded-lg border border-slate-700 bg-slate-800 p-2.5 text-sm text-white placeholder-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
                         type="text"
                         id="register-name"
                         name="name"
@@ -23,17 +22,14 @@
                         value="{{ $old['name'] ?? '' }}"
                         required
                     >
+                    @if(!empty($errors['name']))
+                        <p class="text-sm font-medium text-red-400" role="alert">{{ $errors['name'] }}</p>
+                    @endif
                 </div>
-                @if(!empty($errors['name']))
-                    <p class="form-message form-message--error">{{ $errors['name'] }}</p>
-                @endif
-            </div>
-            <div class="form-field">
-                <label class="form-label" for="register-email">Email</label>
-                <div class="form-input-wrapper">
-                    <span class="form-input-icon material-symbols-outlined">mail</span>
+                <div class="space-y-2">
+                    <label class="block text-sm font-semibold text-slate-200" for="register-email">Email</label>
                     <input
-                        class="form-input"
+                        class="block w-full rounded-lg border border-slate-700 bg-slate-800 p-2.5 text-sm text-white placeholder-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
                         type="email"
                         id="register-email"
                         name="email"
@@ -41,46 +37,45 @@
                         value="{{ $old['email'] ?? '' }}"
                         required
                     >
+                    @if(!empty($errors['email']))
+                        <p class="text-sm font-medium text-red-400" role="alert">{{ $errors['email'] }}</p>
+                    @endif
                 </div>
-                @if(!empty($errors['email']))
-                    <p class="form-message form-message--error">{{ $errors['email'] }}</p>
-                @endif
-            </div>
-            <div class="form-field">
-                <label class="form-label" for="register-password">Пароль</label>
-                <div class="form-input-wrapper">
-                    <span class="form-input-icon material-symbols-outlined">lock</span>
+                <div class="space-y-2">
+                    <label class="block text-sm font-semibold text-slate-200" for="register-password">Пароль</label>
                     <input
-                        class="form-input"
+                        class="block w-full rounded-lg border border-slate-700 bg-slate-800 p-2.5 text-sm text-white placeholder-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
                         type="password"
                         id="register-password"
                         name="password"
                         autocomplete="new-password"
                         required
                     >
+                    @if(!empty($errors['password']))
+                        <p class="text-sm font-medium text-red-400" role="alert">{{ $errors['password'] }}</p>
+                    @endif
                 </div>
-                @if(!empty($errors['password']))
-                    <p class="form-message form-message--error">{{ $errors['password'] }}</p>
-                @endif
-            </div>
-            <div class="form-field">
-                <label class="form-label" for="register-password-confirm">Повторите пароль</label>
-                <div class="form-input-wrapper">
-                    <span class="form-input-icon material-symbols-outlined">key</span>
+                <div class="space-y-2">
+                    <label class="block text-sm font-semibold text-slate-200" for="register-password-confirm">Повторите пароль</label>
                     <input
-                        class="form-input"
+                        class="block w-full rounded-lg border border-slate-700 bg-slate-800 p-2.5 text-sm text-white placeholder-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500"
                         type="password"
                         id="register-password-confirm"
                         name="password_confirmation"
                         autocomplete="new-password"
                         required
                     >
+                    @if(!empty($errors['password_confirmation']))
+                        <p class="text-sm font-medium text-red-400" role="alert">{{ $errors['password_confirmation'] }}</p>
+                    @endif
                 </div>
-                @if(!empty($errors['password_confirmation']))
-                    <p class="form-message form-message--error">{{ $errors['password_confirmation'] }}</p>
-                @endif
-            </div>
-            <button class="auth-submit" type="submit">Зарегистрироваться</button>
-        </form>
+                <button
+                    class="inline-flex w-full justify-center rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-blue-900/40 transition hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-900/60"
+                    type="submit"
+                >
+                    Зарегистрироваться
+                </button>
+            </form>
+        </div>
     </section>
 @endsection
