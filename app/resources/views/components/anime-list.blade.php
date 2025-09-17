@@ -1,9 +1,10 @@
 @php
     $mode = $mode ?? 'favorites';
+    $searchQuery = $searchQuery ?? '';
     $statusMessages = [
         'top' => 'Загружаем подборку…',
         'new' => 'Загружаем подборку…',
-        'search' => 'Введите название аниме, чтобы увидеть результаты.'
+        'search' => ''
     ];
     $statusText = $statusMessages[$mode] ?? 'Загружаем подборку…';
 @endphp
@@ -11,7 +12,10 @@
 <div class="anime-list"
      data-anime-list
      data-mode="{{ $mode }}"
-     @if($mode === 'search') data-anime-search-results @endif>
+     @if($mode === 'search')
+         data-anime-search-results
+         data-search-query="{{ $searchQuery }}"
+     @endif>
     <div class="anime-list__status" data-anime-status role="status">
         <span class="anime-list__status-spinner" aria-hidden="true"
               @if($mode === 'search') style="display: none;" @endif></span>

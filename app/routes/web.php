@@ -32,6 +32,7 @@ $router->get('/', function () {
 $router->get('/list', function (Request $request) {
     $mode = $request->input('mode', 'favorites');
     $favorites = collect();
+    $searchQuery = trim((string) $request->input('search', ''));
 
     if ($mode === 'favorites') {
         $user = Auth::user();
@@ -46,6 +47,7 @@ $router->get('/list', function (Request $request) {
     return view('list', [
         'mode' => $mode,
         'favorites' => $favorites,
+        'searchQuery' => $searchQuery,
     ])->render();
 });
 
