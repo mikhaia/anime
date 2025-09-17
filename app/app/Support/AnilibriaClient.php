@@ -10,6 +10,7 @@ class AnilibriaClient
     private const BASE_URL = 'https://anilibria.top';
     private const CATALOG_ENDPOINT = '/catalog/releases';
     private const RELEASE_ENDPOINT = '/releases';
+    private const FRANCHISE_RELEASE_ENDPOINT = '/franchises/release';
 
     private const EPISODE_QUALITY_ORDER = [1080, 720, 480, 360, 240];
 
@@ -23,8 +24,17 @@ class AnilibriaClient
         $url = sprintf('%s%s/%s', self::API_BASE_URL, self::RELEASE_ENDPOINT, rawurlencode($identifier));
         $query = [];
 
+        $withRelations = [];
+
         if ($withEpisodes) {
-            $query['with'] = 'episodes';
+            $withRelations[] = 'episodes';
+        }
+
+        $withRelations[] = 'related';
+        $withRelations[] = 'related.release';
+
+        if (!empty($withRelations)) {
+            $query['with'] = implode(',', array_unique($withRelations));
         }
 
         $payload = $this->makeRequest($url, $query);
@@ -39,6 +49,11 @@ class AnilibriaClient
             ?? Arr::get($payload, 'poster.src');
         $posterUrl = $posterPath ? $this->buildUrl($posterPath) : null;
 
+        $franchiseReleases = $this->fetchFranchiseReleases((int) $payload['id']);
+        if (empty($franchiseReleases)) {
+            $franchiseReleases = $this->normalizeRelated(Arr::get($payload, 'related', []), (int) $payload['id']);
+        }
+
         return [
             'id' => (int) $payload['id'],
             'title' => $title,
@@ -50,6 +65,7 @@ class AnilibriaClient
             'episodes' => $withEpisodes
                 ? $this->normalizeEpisodes(Arr::get($payload, 'episodes', []))
                 : [],
+            'related' => $franchiseReleases,
         ];
     }
 
@@ -247,6 +263,205 @@ class AnilibriaClient
         usort($normalized, static fn (array $left, array $right) => $left['number'] <=> $right['number']);
 
         return $normalized;
+    }
+
+    /**
+     * @param array<int, mixed> $related
+     * @return array<int, array<string, mixed>>
+     */
+    private function normalizeRelated(array $related, int $currentId): array
+    {
+        $normalized = [];
+
+        foreach ($related as $item) {
+            $release = [];
+
+            if (is_array($item)) {
+                if (is_array($item['release'] ?? null)) {
+                    $release = $item['release'];
+                } else {
+                    $release = $item;
+                }
+            }
+
+            if (empty($release)) {
+                continue;
+            }
+
+            $releaseId = Arr::get($release, 'id');
+            if (!is_numeric($releaseId)) {
+                continue;
+            }
+
+            $releaseId = (int) $releaseId;
+            if ($releaseId <= 0 || $releaseId === $currentId) {
+                continue;
+            }
+
+            $title = $this->resolveTitle($release);
+            $posterPath = Arr::get($release, 'poster.optimized.preview')
+                ?? Arr::get($release, 'poster.optimized.src')
+                ?? Arr::get($release, 'poster.preview')
+                ?? Arr::get($release, 'poster.src');
+
+            $identifier = Arr::get($release, 'alias');
+            if (!is_string($identifier) || trim($identifier) === '') {
+                $identifier = Arr::get($release, 'code');
+            }
+
+            if (is_string($identifier)) {
+                $identifier = trim($identifier);
+            }
+
+            if (!is_string($identifier) || $identifier === '') {
+                $identifier = (string) $releaseId;
+            }
+
+            $relation = Arr::get($item, 'relation');
+            if (is_array($relation)) {
+                $relation = Arr::get($relation, 'title')
+                    ?? Arr::get($relation, 'name')
+                    ?? Arr::get($relation, 'type');
+            }
+
+            $normalized[] = [
+                'id' => $releaseId,
+                'title' => $title,
+                'poster_url' => $posterPath ? $this->buildUrl($posterPath) : null,
+                'identifier' => $identifier,
+                'alias' => Arr::get($release, 'alias'),
+                'relation' => is_string($relation) && $relation !== '' ? $relation : null,
+            ];
+        }
+
+        return $normalized;
+    }
+
+    private function fetchFranchiseReleases(int $releaseId): array
+    {
+        if ($releaseId <= 0) {
+            return [];
+        }
+
+        $url = sprintf('%s%s/%d', self::API_BASE_URL, self::FRANCHISE_RELEASE_ENDPOINT, $releaseId);
+        $payload = $this->makeRequest($url);
+
+        if (!is_array($payload) || empty($payload)) {
+            return [];
+        }
+
+        return $this->normalizeFranchiseReleases($payload, $releaseId);
+    }
+
+    private function normalizeFranchiseReleases(array $franchisePayload, int $currentId): array
+    {
+        $normalized = [];
+
+        foreach ($franchisePayload as $franchise) {
+            if (!is_array($franchise)) {
+                continue;
+            }
+
+            $franchiseReleases = Arr::get($franchise, 'franchise_releases');
+            if (!is_array($franchiseReleases)) {
+                continue;
+            }
+
+            foreach ($franchiseReleases as $item) {
+                $release = Arr::get($item, 'release');
+                if (!is_array($release)) {
+                    continue;
+                }
+
+                $releaseId = Arr::get($release, 'id');
+                if (!is_numeric($releaseId)) {
+                    continue;
+                }
+
+                $releaseId = (int) $releaseId;
+                if ($releaseId <= 0 || $releaseId === $currentId) {
+                    continue;
+                }
+
+                $identifier = Arr::get($release, 'alias');
+                if (is_string($identifier)) {
+                    $identifier = trim($identifier);
+                }
+
+                if (!is_string($identifier) || $identifier === '') {
+                    $identifier = Arr::get($release, 'code');
+                }
+
+                if (is_string($identifier)) {
+                    $identifier = trim($identifier);
+                }
+
+                if (!is_string($identifier) || $identifier === '') {
+                    $identifier = (string) $releaseId;
+                }
+
+                $posterPath = Arr::get($release, 'poster.optimized.preview')
+                    ?? Arr::get($release, 'poster.optimized.src')
+                    ?? Arr::get($release, 'poster.preview')
+                    ?? Arr::get($release, 'poster.src');
+
+                $sortOrder = Arr::get($item, 'sort_order');
+
+                $normalized[] = [
+                    'id' => $releaseId,
+                    'title' => $this->resolveTitle($release),
+                    'poster_url' => $posterPath ? $this->buildUrl($posterPath) : null,
+                    'identifier' => $identifier,
+                    'alias' => Arr::get($release, 'alias'),
+                    'relation' => $this->buildFranchiseRelationLabel($release),
+                    'sort_order' => is_numeric($sortOrder)
+                        ? (int) $sortOrder
+                        : null,
+                ];
+            }
+        }
+
+        usort($normalized, static function (array $left, array $right): int {
+            $leftOrder = $left['sort_order'] ?? PHP_INT_MAX;
+            $rightOrder = $right['sort_order'] ?? PHP_INT_MAX;
+
+            if ($leftOrder !== $rightOrder) {
+                return $leftOrder <=> $rightOrder;
+            }
+
+            return strcasecmp($left['title'] ?? '', $right['title'] ?? '');
+        });
+
+        foreach ($normalized as &$item) {
+            unset($item['sort_order']);
+        }
+        unset($item);
+
+        return $normalized;
+    }
+
+    private function buildFranchiseRelationLabel(array $release): ?string
+    {
+        $season = Arr::get($release, 'season.description');
+        $season = is_string($season) ? trim($season) : '';
+
+        $year = Arr::get($release, 'year');
+        $year = is_numeric($year) ? (string) $year : '';
+
+        $parts = array_values(array_filter([$season, $year], static function ($value) {
+            return is_string($value) && $value !== '';
+        }));
+
+        if (!empty($parts)) {
+            return implode(' • ', $parts);
+        }
+
+        $type = Arr::get($release, 'type.description');
+        if (is_string($type) && trim($type) !== '') {
+            return trim($type);
+        }
+
+        return null;
     }
 
     private function makeRequest(string $url, array $query = []): ?array
