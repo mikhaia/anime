@@ -25,8 +25,12 @@ $router->get('/', function () use ($router) {
 });
 */
 
-$router->get('/', function () {
-    return view('home')->render();
+$router->get('/', function (Request $request) {
+    $searchQuery = trim((string) $request->input('search', ''));
+
+    return view('home', [
+        'searchQuery' => $searchQuery,
+    ])->render();
 });
 
 $router->get('/list', function (Request $request) {
