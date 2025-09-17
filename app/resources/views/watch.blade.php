@@ -26,7 +26,7 @@
                             class="watch-player__video"
                             controls
                             playsinline
-                            preload="metadata"
+                            preload="none"
                             data-watch-player
                             @if($anime->poster_url)
                                 poster="{{ $anime->poster_url }}"
@@ -221,14 +221,8 @@
             playlistItems.forEach((item) => {
                 item.addEventListener('click', () => {
                     setActive(item);
-                    player.play().catch(() => {});
                 });
             });
-
-            const initiallyActive = playlistItems.find((item) => item.dataset.active === 'true') || playlistItems[0];
-            if (initiallyActive) {
-                setActive(initiallyActive);
-            }
         });
     </script>
 @endsection
