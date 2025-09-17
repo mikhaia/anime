@@ -280,6 +280,19 @@
         };
     }
 
+    function createWatchUrl(payload) {
+        if (!payload) {
+            return '';
+        }
+
+        const identifier = payload.alias || payload.id;
+        if (!identifier) {
+            return '';
+        }
+
+        return `/watch/${encodeURIComponent(String(identifier))}`;
+    }
+
     function createFavoriteButton(payload) {
         if (!payload || !payload.id) {
             return null;
@@ -477,6 +490,14 @@
             || '';
         const posterUrl = posterPath ? new URL(posterPath, API_BASE_URL).toString() : '';
 
+        const favoritePayload = createFavoritePayload(release, title, posterUrl);
+
+        const link = document.createElement('a');
+        link.className = 'anime-card__link';
+        const watchUrl = createWatchUrl(favoritePayload);
+        link.href = watchUrl || '#';
+        link.setAttribute('aria-label', `Открыть просмотр «${title}»`);
+
         if (posterUrl) {
             const poster = document.createElement('img');
             poster.className = 'anime-card__image';
@@ -484,12 +505,12 @@
             poster.decoding = 'async';
             poster.alt = `Постер аниме «${title}»`;
             poster.src = posterUrl;
-            card.appendChild(poster);
+            link.appendChild(poster);
         } else {
             const placeholder = document.createElement('div');
             placeholder.className = 'anime-card__placeholder';
             placeholder.textContent = 'Нет постера';
-            card.appendChild(placeholder);
+            link.appendChild(placeholder);
         }
 
         const overlay = document.createElement('div');
@@ -518,9 +539,10 @@
             overlay.appendChild(meta);
         }
 
-        card.appendChild(overlay);
+        link.appendChild(overlay);
 
-        const favoritePayload = createFavoritePayload(release, title, posterUrl);
+        card.appendChild(link);
+
         const favoriteButton = createFavoriteButton(favoritePayload);
         if (favoritePayload?.id) {
             card.dataset.animeId = String(favoritePayload.id);
