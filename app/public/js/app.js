@@ -81,28 +81,311 @@
         }
     });
 
+    const bodyElement = document.body;
+    const initialFavoriteIds = (() => {
+        if (!bodyElement || !bodyElement.dataset || !bodyElement.dataset.favorites) {
+            return [];
+        }
+
+        try {
+            const parsed = JSON.parse(bodyElement.dataset.favorites);
+            if (Array.isArray(parsed)) {
+                return parsed.map((value) => String(value));
+            }
+        } catch (error) {
+            console.warn('Failed to parse favorites list', error);
+        }
+
+        return [];
+    })();
+
+    let isAuthenticated = bodyElement?.dataset?.authenticated === 'true';
+    const favoriteState = {
+        ids: new Set(initialFavoriteIds),
+    };
+
+    function syncFavoriteDataset() {
+        if (!bodyElement) {
+            return;
+        }
+
+        bodyElement.dataset.favorites = JSON.stringify(Array.from(favoriteState.ids));
+    }
+
+    function isFavorite(animeId) {
+        if (animeId === undefined || animeId === null) {
+            return false;
+        }
+
+        return favoriteState.ids.has(String(animeId));
+    }
+
+    function markFavorite(animeId) {
+        if (animeId === undefined || animeId === null) {
+            return;
+        }
+
+        favoriteState.ids.add(String(animeId));
+        syncFavoriteDataset();
+    }
+
+    function unmarkFavorite(animeId) {
+        if (animeId === undefined || animeId === null) {
+            return;
+        }
+
+        favoriteState.ids.delete(String(animeId));
+        syncFavoriteDataset();
+    }
+
+    function updateFavoriteButtonAppearance(button, active) {
+        if (!button) {
+            return;
+        }
+
+        button.classList.toggle('anime-card__favorite--active', active);
+        button.setAttribute('aria-pressed', active ? 'true' : 'false');
+        button.setAttribute('aria-label', active ? 'Удалить из избранного' : 'Добавить в избранное');
+
+        const icon = button.querySelector('[data-favorite-icon]');
+        const text = button.querySelector('[data-favorite-text]');
+
+        if (icon) {
+            icon.classList.toggle('anime-card__favorite-icon--active', active);
+        }
+
+        if (text) {
+            text.textContent = active ? 'В избранном' : 'В избранное';
+        }
+    }
+
+    function refreshFavoriteButtons(animeId, active) {
+        const id = String(animeId);
+        document.querySelectorAll(`[data-favorite-button][data-anime-id="${id}"]`).forEach((button) => {
+            updateFavoriteButtonAppearance(button, active);
+        });
+    }
+
+    function createFavoritePayload(release, title, posterUrl) {
+        if (!release || !release.id) {
+            return null;
+        }
+
+        return {
+            id: release.id,
+            title,
+            poster: posterUrl || null,
+            type: release?.type?.description ?? null,
+            year: release?.year ?? null,
+            episodes: release?.episodes_total ?? null,
+            alias: release?.alias ?? null,
+        };
+    }
+
+    function createFavoriteButton(payload) {
+        if (!payload || !payload.id) {
+            return null;
+        }
+
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'anime-card__favorite';
+        button.dataset.favoriteButton = 'true';
+        button.dataset.animeId = String(payload.id);
+        button.dataset.animePayload = JSON.stringify(payload);
+
+        const icon = document.createElement('span');
+        icon.className = 'material-symbols-outlined anime-card__favorite-icon';
+        icon.dataset.favoriteIcon = '';
+        icon.textContent = 'favorite';
+
+        const text = document.createElement('span');
+        text.className = 'anime-card__favorite-text';
+        text.dataset.favoriteText = '';
+
+        button.append(icon, text);
+        updateFavoriteButtonAppearance(button, isFavorite(payload.id));
+
+        return button;
+    }
+
+    function showFavoritesList() {
+        const favoritesList = document.querySelector('[data-favorites-list]');
+        if (favoritesList) {
+            favoritesList.hidden = false;
+        }
+
+        const emptyState = document.querySelector('[data-favorites-empty]');
+        if (emptyState) {
+            emptyState.hidden = true;
+        }
+    }
+
+    function removeFavoriteCardsFromList(animeId) {
+        const cards = document.querySelectorAll(`[data-anime-card][data-anime-id="${animeId}"]`);
+        cards.forEach((card) => {
+            const listElement = card.closest('[data-favorites-list]');
+            if (!listElement) {
+                return;
+            }
+
+            card.remove();
+
+            if (!listElement.querySelector('[data-anime-card]')) {
+                listElement.hidden = true;
+                const emptyState = document.querySelector('[data-favorites-empty]');
+                if (emptyState) {
+                    emptyState.hidden = false;
+                }
+            }
+        });
+    }
+
+    async function toggleFavorite(button) {
+        if (!button) {
+            return;
+        }
+
+        const animeId = button.dataset.animeId;
+        if (!animeId) {
+            return;
+        }
+
+        if (!isAuthenticated) {
+            if (authButton) {
+                authButton.click();
+            } else {
+                openLoginModal();
+            }
+            return;
+        }
+
+        if (button.dataset.loading === 'true') {
+            return;
+        }
+
+        button.dataset.loading = 'true';
+        button.disabled = true;
+
+        let payload = null;
+        if (button.dataset.animePayload) {
+            try {
+                payload = JSON.parse(button.dataset.animePayload);
+            } catch (error) {
+                console.warn('Failed to parse anime payload', error);
+            }
+        }
+
+        if (!payload) {
+            payload = {};
+        }
+        payload.id = Number(payload.id ?? animeId);
+
+        try {
+            if (isFavorite(animeId)) {
+                const response = await fetch(`/favorites/${animeId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        Accept: 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                    credentials: 'same-origin',
+                });
+
+                if (response.status === 401) {
+                    isAuthenticated = false;
+                    if (authButton) {
+                        authButton.click();
+                    } else {
+                        openLoginModal();
+                    }
+                    return;
+                }
+
+                if (!response.ok && response.status !== 404) {
+                    throw new Error(`Request failed with status ${response.status}`);
+                }
+
+                unmarkFavorite(animeId);
+                refreshFavoriteButtons(animeId, false);
+                removeFavoriteCardsFromList(animeId);
+            } else {
+                const response = await fetch('/favorites', {
+                    method: 'POST',
+                    headers: {
+                        Accept: 'application/json',
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                    credentials: 'same-origin',
+                    body: JSON.stringify(payload),
+                });
+
+                if (response.status === 401) {
+                    isAuthenticated = false;
+                    if (authButton) {
+                        authButton.click();
+                    } else {
+                        openLoginModal();
+                    }
+                    return;
+                }
+
+                if (!response.ok) {
+                    throw new Error(`Request failed with status ${response.status}`);
+                }
+
+                markFavorite(animeId);
+                refreshFavoriteButtons(animeId, true);
+                showFavoritesList();
+            }
+        } catch (error) {
+            console.error('Failed to toggle favorite', error);
+        } finally {
+            delete button.dataset.loading;
+            button.disabled = false;
+        }
+    }
+
+    document.addEventListener('click', (event) => {
+        const button = event.target.closest('[data-favorite-button]');
+        if (!button) {
+            return;
+        }
+
+        event.preventDefault();
+        toggleFavorite(button);
+    });
+
+    document.querySelectorAll('[data-favorite-button]').forEach((button) => {
+        const animeId = button.dataset.animeId;
+        updateFavoriteButtonAppearance(button, isFavorite(animeId));
+    });
+
     const CATALOG_SORTING = {
         top: 'RATING_DESC',
-        new: 'FRESH_AT_DESC'
+        new: 'FRESH_AT_DESC',
     };
 
     function createAnimeCard(release) {
         const card = document.createElement('article');
         card.className = 'anime-card';
+        card.dataset.animeCard = 'true';
 
         const title = release?.name?.main || release?.name?.alternative || 'Без названия';
         const posterPath = release?.poster?.optimized?.preview
             || release?.poster?.preview
             || release?.poster?.src
             || '';
+        const posterUrl = posterPath ? new URL(posterPath, API_BASE_URL).toString() : '';
 
-        if (posterPath) {
+        if (posterUrl) {
             const poster = document.createElement('img');
             poster.className = 'anime-card__image';
             poster.loading = 'lazy';
             poster.decoding = 'async';
             poster.alt = `Постер аниме «${title}»`;
-            poster.src = new URL(posterPath, API_BASE_URL).toString();
+            poster.src = posterUrl;
             card.appendChild(poster);
         } else {
             const placeholder = document.createElement('div');
@@ -138,6 +421,16 @@
         }
 
         card.appendChild(overlay);
+
+        const favoritePayload = createFavoritePayload(release, title, posterUrl);
+        const favoriteButton = createFavoriteButton(favoritePayload);
+        if (favoritePayload?.id) {
+            card.dataset.animeId = String(favoritePayload.id);
+        }
+        if (favoriteButton) {
+            card.appendChild(favoriteButton);
+        }
+
         return card;
     }
 

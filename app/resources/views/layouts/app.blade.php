@@ -26,7 +26,11 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.5.1/flowbite.min.css" integrity="sha512-5HZS0V9PhnCbS5z+5p3pyLgBxxh/vmzgk0/8nCTa2DYyI7nXkCg4lk+Wc66NnZ6MYj5PslHxltNNFUKzPk2Cww==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="stylesheet" href="/css/app.css">
 </head>
-<body @class(['antialiased', 'modal-open' => $openLoginModal ?? false])>
+<body
+    @class(['antialiased', 'modal-open' => $openLoginModal ?? false])
+    data-authenticated="{{ $currentUser ? 'true' : 'false' }}"
+    data-favorites='@json($favoriteIds ?? [])'
+>
     <nav class="navbar">
         <div class="nav-links">
             <a href="{{ url('/') }}" class="nav-link">
