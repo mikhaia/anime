@@ -16,8 +16,7 @@ class ExampleTest extends TestCase
     {
         $this->get('/');
 
-        $this->assertEquals(
-            $this->app->version(), $this->response->getContent()
-        );
+        $this->assertEquals(200, $this->response->getStatusCode());
+        $this->assertStringContainsString('Поиск аниме', $this->response->getContent());
     }
 }
