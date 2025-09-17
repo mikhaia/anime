@@ -11,7 +11,9 @@ class AnilibriaClient
     private const CATALOG_ENDPOINT = '/catalog/releases';
     private const RELEASE_ENDPOINT = '/releases';
 
-    public function fetchRelease(string $identifier): ?array
+    private const EPISODE_QUALITY_ORDER = [1080, 720, 480, 360, 240];
+
+    public function fetchRelease(string $identifier, bool $withEpisodes = false): ?array
     {
         $identifier = trim($identifier);
         if ($identifier === '') {
@@ -19,7 +21,13 @@ class AnilibriaClient
         }
 
         $url = sprintf('%s%s/%s', self::API_BASE_URL, self::RELEASE_ENDPOINT, rawurlencode($identifier));
-        $payload = $this->makeRequest($url);
+        $query = [];
+
+        if ($withEpisodes) {
+            $query['with'] = 'episodes';
+        }
+
+        $payload = $this->makeRequest($url, $query);
         if (!is_array($payload) || empty($payload['id'])) {
             return null;
         }
@@ -39,6 +47,9 @@ class AnilibriaClient
             'year' => Arr::get($payload, 'year'),
             'episodes_total' => Arr::get($payload, 'episodes_total'),
             'alias' => Arr::get($payload, 'alias'),
+            'episodes' => $withEpisodes
+                ? $this->normalizeEpisodes(Arr::get($payload, 'episodes', []))
+                : [],
         ];
     }
 
@@ -173,6 +184,69 @@ class AnilibriaClient
             'episodes_total' => Arr::get($release, 'episodes_total'),
             'alias' => Arr::get($release, 'alias'),
         ];
+    }
+
+    /**
+     * @param array<int, mixed> $episodes
+     * @return array<int, array<string, mixed>>
+     */
+    private function normalizeEpisodes(array $episodes): array
+    {
+        $normalized = [];
+
+        foreach ($episodes as $episode) {
+            $numberValue = Arr::get($episode, 'ordinal');
+            $episodeNumber = is_numeric($numberValue) ? (int) $numberValue : null;
+            if ($episodeNumber === null || $episodeNumber <= 0) {
+                continue;
+            }
+
+            $titleCandidates = [
+                Arr::get($episode, 'name'),
+                Arr::get($episode, 'name_english'),
+            ];
+
+            $title = null;
+            foreach ($titleCandidates as $candidate) {
+                if (is_string($candidate) && trim($candidate) !== '') {
+                    $title = trim($candidate);
+                    break;
+                }
+            }
+
+            $streams = [];
+            foreach (self::EPISODE_QUALITY_ORDER as $quality) {
+                $key = sprintf('hls_%d', $quality);
+                $url = Arr::get($episode, $key);
+                if (is_string($url) && trim($url) !== '') {
+                    $streams[sprintf('%dp', $quality)] = trim($url);
+                }
+            }
+
+            $defaultQuality = null;
+            foreach (self::EPISODE_QUALITY_ORDER as $quality) {
+                $label = sprintf('%dp', $quality);
+                if (isset($streams[$label])) {
+                    $defaultQuality = $label;
+                    break;
+                }
+            }
+
+            $duration = Arr::get($episode, 'duration');
+            $durationSeconds = is_numeric($duration) ? (int) $duration : null;
+
+            $normalized[] = [
+                'number' => $episodeNumber,
+                'title' => $title ?? sprintf('Серия %02d', $episodeNumber),
+                'duration_seconds' => $durationSeconds,
+                'streams' => $streams,
+                'default_quality' => $defaultQuality,
+            ];
+        }
+
+        usort($normalized, static fn (array $left, array $right) => $left['number'] <=> $right['number']);
+
+        return $normalized;
     }
 
     private function makeRequest(string $url, array $query = []): ?array

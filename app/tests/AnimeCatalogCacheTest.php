@@ -48,7 +48,7 @@ class AnimeCatalogCacheTest extends TestCase
                 ];
             }
 
-            public function fetchRelease(string $identifier): ?array
+            public function fetchRelease(string $identifier, bool $withEpisodes = false): ?array
             {
                 return null;
             }
