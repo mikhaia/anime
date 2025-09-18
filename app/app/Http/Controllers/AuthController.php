@@ -10,6 +10,7 @@ use App\Support\Session;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Carbon;
 
 class AuthController extends Controller
 {
@@ -42,7 +43,7 @@ class AuthController extends Controller
             [
                 'ip_address' => (string) $request->ip(),
                 'user_agent' => mb_substr((string) $request->userAgent(), 0, 512),
-                'last_used_at' => now(),
+                'last_used_at' => Carbon::now(),
             ]
         );
 
