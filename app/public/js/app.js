@@ -12,6 +12,39 @@
     const fullscreenButton = document.querySelector('[data-fullscreen-button]');
     const fullscreenIcon = fullscreenButton ? fullscreenButton.querySelector('[data-fullscreen-icon]') : null;
     const fullscreenText = fullscreenButton ? fullscreenButton.querySelector('[data-fullscreen-text]') : null;
+    const dropdownToggleButtons = document.querySelectorAll('[data-dropdown-toggle]');
+
+    dropdownToggleButtons.forEach((button) => {
+        const targetId = button.getAttribute('data-dropdown-toggle');
+
+        if (!targetId) {
+            return;
+        }
+
+        const dropdownMenu = document.getElementById(targetId);
+
+        if (!dropdownMenu) {
+            return;
+        }
+
+        button.addEventListener('click', (event) => {
+            event.preventDefault();
+
+            const shouldOpen = dropdownMenu.style.display !== 'block';
+
+            if (shouldOpen) {
+                dropdownMenu.style.display = 'block';
+                dropdownMenu.classList.remove('hidden');
+                dropdownMenu.setAttribute('aria-hidden', 'false');
+                button.setAttribute('aria-expanded', 'true');
+            } else {
+                dropdownMenu.style.display = 'none';
+                dropdownMenu.classList.add('hidden');
+                dropdownMenu.setAttribute('aria-hidden', 'true');
+                button.setAttribute('aria-expanded', 'false');
+            }
+        });
+    });
 
     function openLoginModal() {
         if (!loginModal) {
