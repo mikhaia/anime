@@ -59,6 +59,9 @@ $router->get('/details', function () {
     return view('details')->render();
 });
 
+$router->get('/profile', 'ProfileController@show');
+$router->post('/profile', 'ProfileController@update');
+
 $router->get('/watch/{identifier}', function (string $identifier) {
     $query = Anime::query();
 

@@ -27,6 +27,7 @@ class StartSession
         app('view')->share('loginError', Session::getFlash('login_error'));
         app('view')->share('openLoginModal', Session::getFlash('open_login_modal'));
         app('view')->share('loginEmail', Session::getFlash('login_email'));
+        app('view')->share('loginRedirect', Session::getFlash('login_redirect'));
         app('view')->share('favoriteIds', $favoriteIds);
 
         return $next($request);
