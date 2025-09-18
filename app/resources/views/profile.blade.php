@@ -24,7 +24,7 @@
                         <h2 class="text-lg font-semibold">{{ $user->name }}</h2>
                         <p class="text-sm text-slate-300">{{ $user->email }}</p>
                     </div>
-                    <p class="text-xs text-slate-400">Аватар автоматически обрежется и будет отображаться размером 100×100 пикселей.</p>
+                    <p class="text-xs text-slate-400">Аватар автоматически обрежется и будет отображаться размером 200×200 пикселей.</p>
                 </div>
             </div>
             <div>
@@ -87,7 +87,7 @@
                             name="avatar"
                             accept="image/png,image/jpeg,image/webp"
                         >
-                        <p class="text-xs text-slate-400">Поддерживаются изображения JPG, PNG и WebP до 5 МБ. Мы автоматически обрежем и уменьшим их до 100×100 пикселей.</p>
+                        <p class="text-xs text-slate-400">Поддерживаются изображения JPG, PNG и WebP до 5 МБ. Мы автоматически обрежем и уменьшим их до 200×200 пикселей.</p>
                         @if(!empty($errors['avatar']))
                             <p class="text-sm font-medium text-red-400" role="alert">{{ $errors['avatar'] }}</p>
                         @endif
