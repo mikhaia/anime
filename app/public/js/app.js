@@ -194,6 +194,169 @@
 
     updateFullscreenButtonState();
 
+    const dropdownContainers = Array.from(document.querySelectorAll('[data-dropdown]'));
+
+    const dropdowns = dropdownContainers
+        .map((container) => {
+            const toggle = container.querySelector('[data-dropdown-toggle]');
+
+            if (!(toggle instanceof HTMLElement)) {
+                return null;
+            }
+
+            const targetId = toggle.dataset.dropdownToggle;
+            const explicitMenu = container.querySelector('[data-dropdown-menu]');
+
+            let menu = null;
+
+            if (targetId) {
+                const byId = document.getElementById(targetId);
+                if (byId instanceof HTMLElement) {
+                    menu = byId;
+                }
+            }
+
+            if (!menu && explicitMenu instanceof HTMLElement) {
+                menu = explicitMenu;
+                if (targetId && !menu.id) {
+                    menu.id = targetId;
+                }
+            }
+
+            if (!(menu instanceof HTMLElement)) {
+                return null;
+            }
+
+            const controlsId = menu.id || targetId;
+
+            toggle.setAttribute('aria-haspopup', 'menu');
+            if (controlsId) {
+                toggle.setAttribute('aria-controls', controlsId);
+            }
+
+            menu.setAttribute('role', 'menu');
+
+            const isInitiallyHidden = menu.classList.contains('hidden') || menu.hasAttribute('hidden');
+
+            if (isInitiallyHidden) {
+                menu.classList.add('hidden');
+                menu.hidden = true;
+                menu.setAttribute('hidden', '');
+                menu.setAttribute('aria-hidden', 'true');
+                toggle.setAttribute('aria-expanded', 'false');
+            } else {
+                menu.classList.remove('hidden');
+                menu.hidden = false;
+                menu.removeAttribute('hidden');
+                menu.setAttribute('aria-hidden', 'false');
+                toggle.setAttribute('aria-expanded', 'true');
+            }
+
+            return {
+                container,
+                toggle,
+                menu,
+            };
+        })
+        .filter(Boolean);
+
+    function isDropdownOpen(dropdown) {
+        return !dropdown.menu.classList.contains('hidden') && dropdown.menu.hidden !== true;
+    }
+
+    function closeDropdown(dropdown, options = {}) {
+        if (!dropdown) {
+            return;
+        }
+
+        dropdown.menu.classList.add('hidden');
+        dropdown.menu.hidden = true;
+        dropdown.menu.setAttribute('hidden', '');
+        dropdown.menu.setAttribute('aria-hidden', 'true');
+        dropdown.toggle.setAttribute('aria-expanded', 'false');
+
+        if (options.restoreFocus) {
+            dropdown.toggle.focus();
+        }
+    }
+
+    function openDropdown(dropdown) {
+        if (!dropdown) {
+            return;
+        }
+
+        dropdown.menu.hidden = false;
+        dropdown.menu.classList.remove('hidden');
+        dropdown.menu.removeAttribute('hidden');
+        dropdown.menu.setAttribute('aria-hidden', 'false');
+        dropdown.toggle.setAttribute('aria-expanded', 'true');
+    }
+
+    function closeAllDropdowns(exceptDropdown) {
+        dropdowns.forEach((dropdown) => {
+            if (dropdown !== exceptDropdown) {
+                closeDropdown(dropdown);
+            }
+        });
+    }
+
+    dropdowns.forEach((dropdown) => {
+        dropdown.toggle.addEventListener('click', (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+
+            if (isDropdownOpen(dropdown)) {
+                closeDropdown(dropdown);
+            } else {
+                closeAllDropdowns(dropdown);
+                openDropdown(dropdown);
+            }
+        });
+
+        dropdown.toggle.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') {
+                event.preventDefault();
+                closeDropdown(dropdown, { restoreFocus: true });
+                return;
+            }
+
+            if (event.key === 'ArrowDown' || event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+
+                if (!isDropdownOpen(dropdown)) {
+                    closeAllDropdowns(dropdown);
+                    openDropdown(dropdown);
+                }
+
+                const firstItem = dropdown.menu.querySelector('[role="menuitem"], a, button, [tabindex]');
+
+                if (firstItem instanceof HTMLElement) {
+                    firstItem.focus();
+                }
+            }
+        });
+    });
+
+    document.addEventListener('click', (event) => {
+        dropdowns.forEach((dropdown) => {
+            if (event.target instanceof Node && dropdown.container.contains(event.target)) {
+                return;
+            }
+
+            closeDropdown(dropdown);
+        });
+    });
+
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+            const openedDropdown = dropdowns.find((dropdown) => isDropdownOpen(dropdown));
+
+            if (openedDropdown) {
+                closeDropdown(openedDropdown, { restoreFocus: true });
+            }
+        }
+    });
+
     const bodyElement = document.body;
     const initialFavoriteIds = (() => {
         if (!bodyElement || !bodyElement.dataset || !bodyElement.dataset.favorites) {
