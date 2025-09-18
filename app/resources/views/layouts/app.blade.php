@@ -51,6 +51,22 @@
             </a>
         </div>
         <div class="nav-actions">
+            @if($currentUser)
+                <a href="{{ url('/profile') }}" class="nav-button nav-profile" data-profile-link>
+                    <span class="nav-profile__avatar" aria-hidden="true">
+                        @if($currentUser->avatar_path)
+                            <img
+                                src="{{ url($currentUser->avatar_path) }}"
+                                alt="Аватар пользователя"
+                                class="nav-profile__avatar-image"
+                            >
+                        @else
+                            <span class="material-symbols-outlined">person</span>
+                        @endif
+                    </span>
+                    <span class="nav-profile__name">{{ $currentUser->name }}</span>
+                </a>
+            @endif
             <button
                 class="nav-button"
                 type="button"
@@ -101,7 +117,7 @@
                         <p class="text-sm text-slate-300">Введите свои данные, чтобы продолжить и открыть доступ к персональным рекомендациям.</p>
                     </div>
                     <form class="space-y-5" data-login-form method="POST" action="{{ url('/login') }}">
-                        <input type="hidden" name="redirect" value="{{ request()->fullUrl() }}">
+                        <input type="hidden" name="redirect" value="{{ $loginRedirect ?? request()->fullUrl() }}">
                         <div class="space-y-2 text-left">
                             <label class="block text-sm font-medium text-slate-200" for="login-email">Email</label>
                             <input
