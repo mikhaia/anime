@@ -73,24 +73,32 @@
                         </p>
                         <p class="watch-player__description" data-watch-description>{{ $activeEpisode['description'] }}</p>
                         <div class="watch-player__controls">
-                            <label class="watch-player__quality">
-                                <span class="watch-player__quality-label">Качество</span>
-                                <select
-                                    class="watch-player__quality-select"
-                                    data-watch-quality
-                                    aria-label="Выберите качество воспроизведения"
-                                    @if(count($activeEpisode['streams'] ?? []) <= 1) disabled @endif
-                                >
-                                    @foreach($activeEpisode['streams'] ?? [] as $quality => $url)
-                                        <option
-                                            value="{{ $quality }}"
-                                            @if(($activeEpisode['default_quality'] ?? null) === $quality) selected @endif
-                                        >
-                                            {{ $quality }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </label>
+                            <div class="watch-player__quality">
+                                <label for="watch-quality-select" class="watch-player__quality-label">Качество</label>
+                                <div class="watch-player__quality-select-wrapper">
+                                    <select
+                                        id="watch-quality-select"
+                                        class="watch-player__quality-select"
+                                        data-watch-quality
+                                        aria-label="Выберите качество воспроизведения"
+                                        @if(count($activeEpisode['streams'] ?? []) <= 1) disabled @endif
+                                    >
+                                        @foreach($activeEpisode['streams'] ?? [] as $quality => $url)
+                                            <option
+                                                value="{{ $quality }}"
+                                                @if(($activeEpisode['default_quality'] ?? null) === $quality) selected @endif
+                                            >
+                                                {{ $quality }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                    <span class="watch-player__quality-select-icon" aria-hidden="true">
+                                        <svg class="watch-player__quality-select-icon-svg" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+                                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m6 8 4 4 4-4" />
+                                        </svg>
+                                    </span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
