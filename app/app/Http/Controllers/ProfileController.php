@@ -174,7 +174,7 @@ class ProfileController extends Controller
             }
         }
 
-        $avatarImage = imagecreatetruecolor(100, 100);
+        $avatarImage = imagecreatetruecolor(200, 200);
 
         if ($avatarImage === false) {
             imagedestroy($croppedImage);
@@ -191,8 +191,8 @@ class ProfileController extends Controller
             0,
             0,
             0,
-            100,
-            100,
+            200,
+            200,
             imagesx($croppedImage),
             imagesy($croppedImage)
         )) {
