@@ -2,8 +2,9 @@ FROM php:8.2-apache
 
 # Базовые пакеты + php-расширения
 RUN apt-get update && apt-get install -y \
-    git zip unzip libzip-dev libonig-dev libpng-dev \
- && docker-php-ext-install pdo pdo_mysql zip \
+    git zip unzip libzip-dev libonig-dev libpng-dev libfreetype6-dev libjpeg62-turbo-dev libwebp-dev \
+ && docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
+ && docker-php-ext-install pdo pdo_mysql zip gd \
  && a2enmod rewrite headers expires
 
 # Composer (копируем бинарь из официального образа)
