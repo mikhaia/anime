@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\DeviceLogin;
 use App\Models\User;
 use App\Support\Auth;
+use App\Support\DeviceIdentifier;
 use App\Support\Session;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -30,14 +32,53 @@ class AuthController extends Controller
 
         Auth::login($user);
 
+        $deviceHash = DeviceIdentifier::hashForRequest($request);
+
+        DeviceLogin::updateOrCreate(
+            [
+                'device_hash' => $deviceHash,
+                'user_id' => $user->getKey(),
+            ],
+            [
+                'ip_address' => (string) $request->ip(),
+                'user_agent' => mb_substr((string) $request->userAgent(), 0, 512),
+                'last_used_at' => now(),
+            ]
+        );
+
         return redirect($redirect);
     }
 
     public function logout(Request $request): RedirectResponse
     {
+        $redirect = $this->redirectUrl($request);
+
+        $user = Auth::user();
+        if ($user) {
+            $deviceHash = DeviceIdentifier::hashForRequest($request);
+
+            DeviceLogin::where('device_hash', $deviceHash)
+                ->where('user_id', $user->getKey())
+                ->delete();
+        }
+
         Auth::logout();
 
-        return redirect($this->redirectUrl($request));
+        return redirect($redirect);
+    }
+
+    public function switchUser(Request $request): string
+    {
+        $deviceHash = DeviceIdentifier::hashForRequest($request);
+
+        $logins = DeviceLogin::with('user')
+            ->where('device_hash', $deviceHash)
+            ->orderByDesc('last_used_at')
+            ->get();
+
+        return view('switch-user', [
+            'deviceLogins' => $logins,
+        ])->render();
     }
 
     public function showRegister(): string
