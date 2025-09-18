@@ -75,7 +75,7 @@
                     </button>
                     <div
                         id="nav-user-menu"
-                        class="z-50 hidden w-64 divide-y divide-slate-800 overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/95 text-sm shadow-2xl"
+                        class="absolute z-50 hidden w-64 divide-y divide-slate-800 overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/95 text-sm shadow-2xl"
                     >
                         <div class="px-5 py-4">
                             <p class="text-sm font-semibold text-slate-100">{{ $currentUser->name }}</p>
