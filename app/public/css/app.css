@@ -552,7 +552,7 @@ main {
 
 .watch-player__title {
     margin: 0;
-    font-size: clamp(1.5rem, 3vw, 2rem);
+    font-size: clamp(1.5rem, 3vw, 1.5rem);
     font-weight: 600;
 }
 
@@ -596,11 +596,6 @@ main {
     max-width: 12rem;
     font-size: 0.95rem;
     color: rgba(226, 232, 240, 0.85);
-}
-
-.watch-player__quality-label {
-    font-weight: 600;
-    color: #e2e8f0;
 }
 
 .watch-player__quality-select-wrapper {
@@ -783,6 +778,11 @@ main {
 @media (min-width: 768px) {
     .anime-grid {
         grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+    }
+    .anime-card {
+        max-width: 250px;
+        margin: auto;
     }
 }
 

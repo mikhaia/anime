@@ -14,7 +14,6 @@
             method="GET"
             data-anime-search-form
         >
-            <label class="block text-sm font-medium text-slate-200" for="anime-search">Название аниме</label>
             <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
                 <div class="relative flex-1">
                     <div class="pointer-events-none absolute inset-y-0 start-0 flex items-center ps-3 text-slate-400">
@@ -25,7 +24,7 @@
                         type="search"
                         id="anime-search"
                         name="search"
-                        placeholder="Например, Наруто, One Piece или Восхождение героя щита"
+                        placeholder="Введите название аниме. Например, Наруто, One Piece или Восхождение героя щита..."
                         autocomplete="off"
                         value="{{ $searchQuery ?? '' }}"
                         required

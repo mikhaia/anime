@@ -114,20 +114,6 @@ $router->get('/watch/{identifier}', function (string $identifier) {
         return sprintf('%d мин.', $minutes);
     };
 
-    $buildDescription = static function (string $animeTitle, int $episodeNumber, string $episodeTitle): string {
-        $normalizedTitle = trim($animeTitle) !== '' ? $animeTitle : 'Аниме';
-        $normalizedEpisodeTitle = trim($episodeTitle) !== ''
-            ? $episodeTitle
-            : sprintf('Серия %02d', $episodeNumber);
-
-        return sprintf(
-            '«%s» — эпизод %02d «%s». Наслаждайтесь просмотром любимого тайтла в высоком качестве.',
-            $normalizedTitle,
-            $episodeNumber,
-            $normalizedEpisodeTitle
-        );
-    };
-
     $episodes = [];
     $seasons = [];
 
@@ -171,7 +157,7 @@ $router->get('/watch/{identifier}', function (string $identifier) {
             $episodes[] = [
                 'number' => $episodeNumber,
                 'title' => $episodeTitle,
-                'description' => $buildDescription($anime->title ?? '', $episodeNumber, $episodeTitle),
+                'description' => '',
                 'duration' => $formatDuration($episode['duration_seconds'] ?? null),
                 'stream_url' => $defaultStream,
                 'streams' => $streams,
@@ -194,7 +180,7 @@ $router->get('/watch/{identifier}', function (string $identifier) {
             $episodes[] = [
                 'number' => $episodeNumber,
                 'title' => $title,
-                'description' => $buildDescription($anime->title ?? '', $episodeNumber, $title),
+                'description' => '',
                 'duration' => '24 мин.',
                 'stream_url' => $baseStream,
                 'streams' => [

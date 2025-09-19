@@ -30,12 +30,12 @@
                     </button>
                 </div>
             @else
-                <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
                     @foreach($deviceLogins as $login)
                         @php $user = $login->user; @endphp
                         @continue(!$user)
                         <article class="group flex flex-col overflow-hidden rounded-3xl border border-slate-800 bg-slate-900/80 p-5 transition hover:border-blue-500/50 hover:bg-slate-900">
-                            <div class="mb-4 inline-flex size-16 items-center justify-center overflow-hidden rounded-2xl border border-slate-700 bg-slate-800">
+                            <div class="mb-4 inline-flex items-center justify-center overflow-hidden rounded-2xl border border-slate-700 bg-slate-800">
                                 @if($user->avatar_path)
                                     <img
                                         src="{{ url($user->avatar_path) }}"
