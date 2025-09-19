@@ -43,6 +43,7 @@ class AnilibriaClient
         }
 
         $title = $this->resolveTitle($payload);
+        $englishTitle = $this->resolveEnglishTitle($payload);
         $posterPath = Arr::get($payload, 'poster.optimized.preview')
             ?? Arr::get($payload, 'poster.optimized.src')
             ?? Arr::get($payload, 'poster.preview')
@@ -57,6 +58,7 @@ class AnilibriaClient
         return [
             'id' => (int) $payload['id'],
             'title' => $title,
+            'title_english' => $englishTitle,
             'poster_url' => $posterUrl,
             'type' => Arr::get($payload, 'type.description'),
             'year' => Arr::get($payload, 'year'),
@@ -159,6 +161,26 @@ class AnilibriaClient
         return 'Неизвестное аниме';
     }
 
+    private function resolveEnglishTitle(array $payload): ?string
+    {
+        $name = $payload['name'] ?? null;
+        if (is_array($name)) {
+            foreach (['english', 'alternative'] as $key) {
+                $value = $name[$key] ?? null;
+                if (is_string($value) && ($trimmed = trim($value)) !== '') {
+                    return $trimmed;
+                }
+            }
+        }
+
+        $fallback = $payload['title_english'] ?? $payload['english_title'] ?? null;
+        if (is_string($fallback) && ($trimmed = trim($fallback)) !== '') {
+            return $trimmed;
+        }
+
+        return null;
+    }
+
     private function buildUrl(string $path): string
     {
         if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) {
@@ -186,6 +208,7 @@ class AnilibriaClient
         }
 
         $title = $this->resolveTitle($release);
+        $englishTitle = $this->resolveEnglishTitle($release);
         $posterPath = Arr::get($release, 'poster.optimized.preview')
             ?? Arr::get($release, 'poster.optimized.src')
             ?? Arr::get($release, 'poster.preview')
@@ -194,6 +217,7 @@ class AnilibriaClient
         return [
             'id' => (int) $release['id'],
             'title' => $title,
+            'title_english' => $englishTitle,
             'poster_url' => $posterPath ? $this->buildUrl($posterPath) : null,
             'type' => Arr::get($release, 'type.description'),
             'year' => Arr::get($release, 'year'),
@@ -299,6 +323,7 @@ class AnilibriaClient
             }
 
             $title = $this->resolveTitle($release);
+            $englishTitle = $this->resolveEnglishTitle($release);
             $posterPath = Arr::get($release, 'poster.optimized.preview')
                 ?? Arr::get($release, 'poster.optimized.src')
                 ?? Arr::get($release, 'poster.preview')
@@ -327,6 +352,7 @@ class AnilibriaClient
             $normalized[] = [
                 'id' => $releaseId,
                 'title' => $title,
+                'title_english' => $englishTitle,
                 'poster_url' => $posterPath ? $this->buildUrl($posterPath) : null,
                 'identifier' => $identifier,
                 'alias' => Arr::get($release, 'alias'),
@@ -410,6 +436,7 @@ class AnilibriaClient
                 $normalized[] = [
                     'id' => $releaseId,
                     'title' => $this->resolveTitle($release),
+                    'title_english' => $this->resolveEnglishTitle($release),
                     'poster_url' => $posterPath ? $this->buildUrl($posterPath) : null,
                     'identifier' => $identifier,
                     'alias' => Arr::get($release, 'alias'),

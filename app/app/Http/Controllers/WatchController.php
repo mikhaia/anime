@@ -34,10 +34,19 @@ class WatchController extends Controller
         }
 
         if ($release) {
+            $englishTitle = null;
+            if (is_string($release['title_english'] ?? null)) {
+                $trimmed = trim((string) $release['title_english']);
+                if ($trimmed !== '') {
+                    $englishTitle = $trimmed;
+                }
+            }
+
             $anime = Anime::updateOrCreate(
                 ['id' => $release['id']],
                 [
                     'title' => $release['title'],
+                    'title_english' => $englishTitle,
                     'poster_url' => $release['poster_url'],
                     'type' => $release['type'],
                     'year' => $release['year'],

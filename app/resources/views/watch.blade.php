@@ -10,6 +10,10 @@
 @section('content')
     <header class="page-header">
         <h1 class="page-title">{{ $anime->title }}</h1>
+        @php $englishTitle = is_string($anime->title_english) ? trim($anime->title_english) : ''; @endphp
+        @if($englishTitle !== '' && $englishTitle !== $anime->title)
+            <p class="page-subtitle">{{ $englishTitle }}</p>
+        @endif
     </header>
     <section class="page-content page-content--wide">
         @if($activeEpisode)

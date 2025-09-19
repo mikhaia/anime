@@ -55,6 +55,7 @@
                             $payload = [
                                 'id' => (int) $anime->getKey(),
                                 'title' => $anime->title,
+                                'title_english' => $anime->title_english,
                                 'poster' => $anime->poster_url,
                                 'type' => $anime->type,
                                 'year' => $anime->year,

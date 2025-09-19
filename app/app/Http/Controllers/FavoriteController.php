@@ -22,6 +22,7 @@ class FavoriteController extends Controller
         $data = $this->validate($request, [
             'id' => 'required|integer|min:1',
             'title' => 'required|string|max:255',
+            'title_english' => 'nullable|string|max:255',
             'poster' => 'nullable|string|max:1024',
             'type' => 'nullable|string|max:255',
             'year' => 'nullable|integer|min:0',
@@ -29,10 +30,19 @@ class FavoriteController extends Controller
             'alias' => 'nullable|string|max:255',
         ]);
 
+        $englishTitle = null;
+        if (is_string($data['title_english'] ?? null)) {
+            $trimmed = trim((string) $data['title_english']);
+            if ($trimmed !== '') {
+                $englishTitle = $trimmed;
+            }
+        }
+
         $anime = Anime::updateOrCreate(
             ['id' => $data['id']],
             [
                 'title' => $data['title'],
+                'title_english' => $englishTitle,
                 'poster_url' => $data['poster'] ?? null,
                 'type' => $data['type'] ?? null,
                 'year' => $data['year'] ?? null,
@@ -51,6 +61,7 @@ class FavoriteController extends Controller
             'favorite' => [
                 'id' => $favorite->anime_id,
                 'title' => $anime->title,
+                'title_english' => $anime->title_english,
             ],
         ]);
     }

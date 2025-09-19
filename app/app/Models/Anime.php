@@ -12,6 +12,7 @@ class Anime extends Model
     protected $fillable = [
         'id',
         'title',
+        'title_english',
         'poster_url',
         'type',
         'year',
