@@ -65,11 +65,15 @@
                         <article class="anime-card" data-anime-card data-anime-id="{{ $anime->getKey() }}">
                             @php
                                 $watchUrl = url('/watch/' . ($anime->alias ?: $anime->getKey()));
+                                $detailsUrl = url('/details');
                             @endphp
                             <a
                                 class="anime-card__link"
                                 href="{{ $watchUrl }}"
-                                aria-label="Открыть просмотр «{{ $anime->title }}»"
+                                data-anime-card-trigger
+                                aria-haspopup="true"
+                                aria-expanded="false"
+                                aria-label="Открыть варианты действий для «{{ $anime->title }}»"
                             >
                                 @if($anime->poster_url)
                                     <img class="anime-card__image" src="{{ $anime->poster_url }}"
@@ -84,16 +88,20 @@
                                     @endif
                                 </div>
                             </a>
-                            <button
-                                class="anime-card__favorite anime-card__favorite--active"
-                                type="button"
-                                data-favorite-button
-                                data-anime-id="{{ $anime->getKey() }}"
-                                data-anime-payload='@json($payload, JSON_UNESCAPED_UNICODE)'
-                            >
-                                <span class="material-symbols-outlined anime-card__favorite-icon" data-favorite-icon>favorite</span>
-                                <span class="anime-card__favorite-text" data-favorite-text>В избранном</span>
-                            </button>
+                            <div class="anime-card__actions" data-anime-card-actions aria-hidden="true">
+                                <a class="anime-card__action anime-card__action--watch" href="{{ $watchUrl }}">Смотреть</a>
+                                <button
+                                    class="anime-card__action anime-card__action--favorite anime-card__favorite anime-card__favorite--active"
+                                    type="button"
+                                    data-favorite-button
+                                    data-anime-id="{{ $anime->getKey() }}"
+                                    data-anime-payload='@json($payload, JSON_UNESCAPED_UNICODE)'
+                                >
+                                    <span class="material-symbols-outlined anime-card__favorite-icon" data-favorite-icon>favorite</span>
+                                    <span class="anime-card__favorite-text" data-favorite-text>Удалить из избранного</span>
+                                </button>
+                                <a class="anime-card__action anime-card__action--details" href="{{ $detailsUrl }}">Описание</a>
+                            </div>
                         </article>
                     @endforeach
                 </div>
