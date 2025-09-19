@@ -9,6 +9,7 @@
     const logoutForm = document.querySelector('[data-logout-form]');
     const logoutLinks = document.querySelectorAll('[data-logout-link]');
     const modalCloseControls = loginModal ? loginModal.querySelectorAll('[data-modal-close]') : [];
+    const loginModalToggleButtons = document.querySelectorAll('[data-modal-toggle="login-modal"]');
     const fullscreenButton = document.querySelector('[data-fullscreen-button]');
     const fullscreenIcon = fullscreenButton ? fullscreenButton.querySelector('[data-fullscreen-icon]') : null;
     const fullscreenText = fullscreenButton ? fullscreenButton.querySelector('[data-fullscreen-text]') : null;
@@ -101,6 +102,18 @@
     if (authButton) {
         authButton.addEventListener('click', toggleAuth);
     }
+
+    loginModalToggleButtons.forEach((element) => {
+        element.addEventListener('click', (event) => {
+            if (element === authButton && authButton && authButton.dataset.authState === 'authenticated') {
+                return;
+            }
+
+            event.preventDefault();
+            event.stopPropagation();
+            openLoginModal();
+        });
+    });
 
     logoutLinks.forEach((element) => {
         element.addEventListener('click', (event) => {
