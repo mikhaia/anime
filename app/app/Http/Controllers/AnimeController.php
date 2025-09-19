@@ -62,10 +62,19 @@ class AnimeController extends Controller
         $ids = [];
 
         foreach (Arr::get($result, 'items', []) as $release) {
+            $englishTitle = null;
+            if (is_string($release['title_english'] ?? null)) {
+                $trimmed = trim((string) $release['title_english']);
+                if ($trimmed !== '') {
+                    $englishTitle = $trimmed;
+                }
+            }
+
             $anime = Anime::updateOrCreate(
                 ['id' => $release['id']],
                 [
                     'title' => $release['title'],
+                    'title_english' => $englishTitle,
                     'poster_url' => $release['poster_url'],
                     'type' => $release['type'],
                     'year' => $release['year'],
@@ -127,10 +136,19 @@ class AnimeController extends Controller
 
         $items = [];
         foreach (Arr::get($result, 'items', []) as $release) {
+            $englishTitle = null;
+            if (is_string($release['title_english'] ?? null)) {
+                $trimmed = trim((string) $release['title_english']);
+                if ($trimmed !== '') {
+                    $englishTitle = $trimmed;
+                }
+            }
+
             $anime = Anime::updateOrCreate(
                 ['id' => $release['id']],
                 [
                     'title' => $release['title'],
+                    'title_english' => $englishTitle,
                     'poster_url' => $release['poster_url'],
                     'type' => $release['type'],
                     'year' => $release['year'],
@@ -178,6 +196,7 @@ class AnimeController extends Controller
         return [
             'id' => (int) $anime->getKey(),
             'title' => $anime->title,
+            'title_english' => $anime->title_english,
             'poster_url' => $anime->poster_url,
             'type' => $anime->type,
             'year' => $anime->year !== null ? (int) $anime->year : null,

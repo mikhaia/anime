@@ -333,6 +333,9 @@
         return {
             id: release.id,
             title,
+            title_english: typeof release?.title_english === 'string' && release.title_english.trim().length > 0
+                ? release.title_english.trim()
+                : null,
             poster: posterUrl || null,
             type: release?.type ?? null,
             year: release?.year ?? null,
@@ -919,6 +922,16 @@
             const title = titleCandidates.find((value) => typeof value === 'string' && value.trim().length > 0) ||
                 'Без названия';
 
+            const englishCandidates = [
+                release?.title_english ?? null,
+                release?.name?.english ?? null,
+                release?.name?.alternative ?? null,
+            ];
+
+            const englishTitleCandidate = englishCandidates.find((value) => typeof value === 'string' && value.trim().length > 0)
+                || null;
+            const englishTitle = englishTitleCandidate ? englishTitleCandidate.trim() : null;
+
             const posterCandidates = [
                 release.poster_url ?? null,
                 release?.poster?.optimized?.preview ?? null,
@@ -968,6 +981,7 @@
             return {
                 id,
                 title,
+                title_english: englishTitle,
                 poster_url: finalPoster,
                 type,
                 year: normalizedYear,
