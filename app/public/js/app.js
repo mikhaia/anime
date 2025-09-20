@@ -1,6 +1,7 @@
 (function () {
     const APP_BASE_URL = window.location.origin;
     const ANILIBRIA_BASE_URL = 'https://anilibria.top';
+    const APP_SEARCH_URL = new URL('/api/anime/search', APP_BASE_URL).toString();
     const ANILIBRIA_SEARCH_URL = `${ANILIBRIA_BASE_URL}/api/v1/app/search/releases`;
 
     const authButton = document.querySelector('[data-auth-button]');
@@ -990,7 +991,18 @@
             };
         }
 
-        function buildSearchUrl(query, page) {
+        let appSearchUnavailable = false;
+
+        function buildAppSearchUrl(query, page) {
+            const url = new URL(APP_SEARCH_URL);
+            url.searchParams.set('query', query);
+            if (page > 1) {
+                url.searchParams.set('page', String(page));
+            }
+            return url.toString();
+        }
+
+        function buildExternalSearchUrl(query, page) {
             const url = new URL(ANILIBRIA_SEARCH_URL);
             url.searchParams.set('query', query);
             if (page > 1) {
@@ -999,13 +1011,7 @@
             return url.toString();
         }
 
-        async function fetchSearchPage(query, page) {
-            const response = await fetch(buildSearchUrl(query, page));
-            if (!response.ok) {
-                throw new Error(`Request failed with status ${response.status}`);
-            }
-
-            const payload = await response.json();
+        function extractSearchPayload(payload) {
             let rawReleases = [];
             let hasNext = false;
 
@@ -1022,6 +1028,72 @@
                 .filter(Boolean);
 
             return { releases, hasNext };
+        }
+
+        async function fetchFromAppSearch(query, page) {
+            if (appSearchUnavailable) {
+                throw new Error('App search endpoint is unavailable');
+            }
+
+            let response;
+            try {
+                response = await fetch(buildAppSearchUrl(query, page), {
+                    credentials: 'same-origin',
+                    headers: {
+                        Accept: 'application/json',
+                    },
+                });
+            } catch (error) {
+                appSearchUnavailable = true;
+                throw error instanceof Error ? error : new Error('Failed to reach app search endpoint');
+            }
+
+            if (!response.ok) {
+                if (response.status === 404 || response.status >= 500) {
+                    appSearchUnavailable = true;
+                }
+
+                throw new Error(`Request failed with status ${response.status}`);
+            }
+
+            try {
+                const payload = await response.json();
+                return extractSearchPayload(payload);
+            } catch (error) {
+                appSearchUnavailable = true;
+                throw error instanceof Error ? error : new Error('Failed to parse app search response');
+            }
+        }
+
+        async function fetchFromExternalSearch(query, page) {
+            const response = await fetch(buildExternalSearchUrl(query, page));
+            if (!response.ok) {
+                throw new Error(`Request failed with status ${response.status}`);
+            }
+
+            const payload = await response.json();
+            return extractSearchPayload(payload);
+        }
+
+        function persistSearchResults(query, page) {
+            if (appSearchUnavailable) {
+                return;
+            }
+
+            fetchFromAppSearch(query, page).catch(() => {
+                appSearchUnavailable = true;
+            });
+        }
+
+        async function fetchSearchPage(query, page) {
+            try {
+                return await fetchFromAppSearch(query, page);
+            } catch (error) {
+                console.warn('Falling back to external search endpoint', error);
+                const fallbackResult = await fetchFromExternalSearch(query, page);
+                persistSearchResults(query, page);
+                return fallbackResult;
+            }
         }
 
         async function loadNextPage() {
