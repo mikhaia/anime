@@ -115,3 +115,7 @@
         @endif
     </section>
 @endsection
+
+@push('scripts')
+    <script src="/js/list.js" defer></script>
+@endpush
