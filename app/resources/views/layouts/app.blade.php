@@ -141,5 +141,6 @@
     </form>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.5.1/flowbite.min.js" integrity="sha512-e1zNcu3zcOZ9F8AIMVAnMl1hTRvabzpKUfJGlnLIw3FGUeR9CvU9N1JsVgBttRaxDTKhuk0Ik1qfThaWwsugrA==" crossorigin="anonymous" referrerpolicy="no-referrer" defer></script>
     <script src="/js/app.js" defer></script>
+    @stack('scripts')
 </body>
 </html>
