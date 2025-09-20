@@ -114,17 +114,13 @@
                     </div>
                 </div>
             @else
-                <button
+                <a
                     class="nav-button"
-                    type="button"
-                    data-auth-button
-                    data-auth-state="guest"
-                    data-modal-target="login-modal"
-                    data-modal-toggle="login-modal"
+                    href="{{ url('/switch-user') . '?redirect=' . urlencode(request()->fullUrl()) }}"
                 >
                     <span class="material-symbols-outlined">login</span>
                     <span>Войти</span>
-                </button>
+                </a>
             @endif
             <button class="nav-button" type="button" data-fullscreen-button>
                 <span class="material-symbols-outlined" data-fullscreen-icon>fullscreen</span>
