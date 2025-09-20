@@ -169,6 +169,45 @@ class AnimeController extends Controller
         ]);
     }
 
+    public function suggestions(Request $request): JsonResponse
+    {
+        $query = trim((string) $request->query('query', ''));
+
+        if ($query === '') {
+            return response()->json([
+                'data' => [],
+            ]);
+        }
+
+        $escapedQuery = $this->escapeLike($query);
+
+        $suggestions = Anime::query()
+            ->select(['id', 'title', 'title_english', 'alias'])
+            ->where(function ($builder) use ($escapedQuery) {
+                $builder
+                    ->where('title', 'like', '%' . $escapedQuery . '%')
+                    ->orWhere('title_english', 'like', '%' . $escapedQuery . '%');
+            })
+            ->orderByRaw('CASE WHEN title LIKE ? THEN 0 ELSE 1 END', [$escapedQuery . '%'])
+            ->orderByRaw('CASE WHEN title_english LIKE ? THEN 0 ELSE 1 END', [$escapedQuery . '%'])
+            ->orderBy('title')
+            ->limit(8)
+            ->get()
+            ->map(function (Anime $anime) {
+                return [
+                    'id' => (int) $anime->getKey(),
+                    'title' => $anime->title,
+                    'title_english' => $anime->title_english,
+                    'alias' => $anime->alias,
+                ];
+            })
+            ->values();
+
+        return response()->json([
+            'data' => $suggestions,
+        ]);
+    }
+
     private function loadCachedAnime(array $ids): array
     {
         if (empty($ids)) {
@@ -203,5 +242,10 @@ class AnimeController extends Controller
             'episodes_total' => $anime->episodes_total !== null ? (int) $anime->episodes_total : null,
             'alias' => $anime->alias,
         ];
+    }
+
+    private function escapeLike(string $value): string
+    {
+        return addcslashes($value, '\\%_');
     }
 }

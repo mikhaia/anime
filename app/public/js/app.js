@@ -143,6 +143,176 @@
         }
     });
 
+    const searchForm = document.querySelector('[data-anime-search-form]');
+    const searchInput = searchForm ? searchForm.querySelector('[data-anime-search-input]') : null;
+    const suggestionsPanel = searchForm ? searchForm.querySelector('[data-anime-search-suggestions]') : null;
+
+    if (searchForm && searchInput && suggestionsPanel) {
+        let debounceTimer = null;
+        let activeController = null;
+        let currentSuggestions = [];
+
+        function hideSuggestions() {
+            currentSuggestions = [];
+            suggestionsPanel.innerHTML = '';
+            suggestionsPanel.hidden = true;
+            suggestionsPanel.classList.add('hidden');
+            suggestionsPanel.setAttribute('aria-hidden', 'true');
+        }
+
+        function createSuggestionLink(suggestion) {
+            const title = typeof suggestion?.title === 'string' ? suggestion.title.trim() : '';
+            const englishTitle = typeof suggestion?.title_english === 'string' ? suggestion.title_english.trim() : '';
+            const id = suggestion?.id;
+
+            if (!title || !id) {
+                return null;
+            }
+
+            const alias = typeof suggestion?.alias === 'string' ? suggestion.alias.trim() : '';
+            const identifier = alias !== '' ? alias : String(id);
+            const link = document.createElement('a');
+            link.className =
+                'block border-b border-slate-800 px-4 py-3 text-sm text-slate-100 transition last:border-b-0 hover:bg-slate-800/80 focus:bg-slate-800/80 focus:outline-none';
+            link.href = `/watch/${encodeURIComponent(identifier)}`;
+            link.setAttribute('role', 'option');
+            link.dataset.animeId = String(id);
+
+            const titleElement = document.createElement('span');
+            titleElement.className = 'block';
+            titleElement.textContent = title;
+            link.appendChild(titleElement);
+
+            if (englishTitle !== '') {
+                const englishElement = document.createElement('small');
+                englishElement.className = 'mt-1 block text-xs text-slate-400';
+                englishElement.textContent = englishTitle;
+                link.appendChild(englishElement);
+            }
+
+            return link;
+        }
+
+        function showSuggestions(items) {
+            suggestionsPanel.innerHTML = '';
+            currentSuggestions = Array.isArray(items) ? items.filter(Boolean) : [];
+
+            if (currentSuggestions.length === 0) {
+                hideSuggestions();
+                return;
+            }
+
+            currentSuggestions.forEach((item) => {
+                const link = createSuggestionLink(item);
+                if (link) {
+                    suggestionsPanel.appendChild(link);
+                }
+            });
+
+            if (!suggestionsPanel.hasChildNodes()) {
+                hideSuggestions();
+                return;
+            }
+
+            suggestionsPanel.hidden = false;
+            suggestionsPanel.classList.remove('hidden');
+            suggestionsPanel.setAttribute('aria-hidden', 'false');
+        }
+
+        function abortRequest() {
+            if (activeController) {
+                activeController.abort();
+                activeController = null;
+            }
+        }
+
+        function requestSuggestions(query) {
+            abortRequest();
+
+            if (typeof AbortController !== 'undefined') {
+                activeController = new AbortController();
+            }
+
+            const controller = activeController;
+            const options = controller ? { signal: controller.signal } : {};
+
+            fetch(`/api/anime/suggestions?query=${encodeURIComponent(query)}`, options)
+                .then((response) => {
+                    if (!response.ok) {
+                        throw new Error('Failed to load suggestions');
+                    }
+
+                    return response.json();
+                })
+                .then((payload) => {
+                    if (searchInput.value.trim() !== query) {
+                        return;
+                    }
+
+                    if (payload && Array.isArray(payload.data)) {
+                        showSuggestions(payload.data);
+                    } else {
+                        hideSuggestions();
+                    }
+                })
+                .catch((error) => {
+                    if (error && error.name === 'AbortError') {
+                        return;
+                    }
+
+                    console.warn('Не удалось загрузить подсказки поиска', error);
+                    hideSuggestions();
+                })
+                .finally(() => {
+                    if (controller === activeController) {
+                        activeController = null;
+                    }
+                });
+        }
+
+        function handleInput() {
+            const value = searchInput.value.trim();
+
+            if (value.length < 2) {
+                clearTimeout(debounceTimer);
+                abortRequest();
+                hideSuggestions();
+                return;
+            }
+
+            clearTimeout(debounceTimer);
+            debounceTimer = window.setTimeout(() => {
+                requestSuggestions(value);
+            }, 200);
+        }
+
+        hideSuggestions();
+
+        searchInput.addEventListener('input', handleInput);
+
+        searchInput.addEventListener('focus', () => {
+            if (currentSuggestions.length > 0) {
+                showSuggestions(currentSuggestions);
+            }
+        });
+
+        searchInput.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') {
+                hideSuggestions();
+            }
+        });
+
+        searchForm.addEventListener('submit', () => {
+            hideSuggestions();
+        });
+
+        document.addEventListener('click', (event) => {
+            if (!searchForm.contains(event.target)) {
+                hideSuggestions();
+            }
+        });
+    }
+
     function getFullscreenElement() {
         return (
             document.fullscreenElement ||

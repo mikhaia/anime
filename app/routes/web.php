@@ -58,6 +58,7 @@ $router->get('/watch/{identifier}', 'WatchController@show');
 $router->group(['prefix' => 'api'], function () use ($router) {
     $router->get('catalog/{category}', 'AnimeController@catalog');
     $router->get('anime/search', 'AnimeController@search');
+    $router->get('anime/suggestions', 'AnimeController@suggestions');
 });
 
 $router->get('/register', 'AuthController@showRegister');

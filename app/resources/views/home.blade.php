@@ -15,7 +15,7 @@
             data-anime-search-form
         >
             <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
-                <div class="relative flex-1">
+                <div class="relative flex-1" data-anime-search>
                     <div class="pointer-events-none absolute inset-y-0 start-0 flex items-center ps-3 text-slate-400">
                         <span class="material-symbols-outlined text-2xl" aria-hidden="true">search</span>
                     </div>
@@ -30,6 +30,12 @@
                         required
                         data-anime-search-input
                     >
+                    <div
+                        class="absolute inset-x-0 top-full z-20 mt-2 hidden max-h-96 overflow-auto rounded-xl border border-slate-700 bg-slate-900/95 shadow-2xl"
+                        data-anime-search-suggestions
+                        role="listbox"
+                        hidden
+                    ></div>
                 </div>
                 <button
                     class="inline-flex items-center justify-center rounded-lg bg-blue-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-900/40 transition hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-900/60 sm:w-auto"
