@@ -141,5 +141,6 @@
 @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.7/dist/hls.min.js" defer></script>
     <script src="/js/watch.js" defer></script>
+    <script src="/js/control.js" defer></script>
 @endpush
 @endsection

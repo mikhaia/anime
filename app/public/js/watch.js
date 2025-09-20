@@ -19,6 +19,9 @@
         const qualitySelect = document.querySelector('[data-watch-quality]');
         let preferredQuality = qualitySelect?.value ?? null;
 
+        const navLinks = Array.from(document.querySelectorAll('.navbar .nav-links .nav-link'));
+        const navActions = Array.from(document.querySelectorAll('.navbar .nav-actions .nav-button'));
+
         if (!player || playlistItems.length === 0) {
             return;
         }
@@ -247,15 +250,124 @@
             rememberEpisode(episodeNumber);
         }
 
-        playlistItems.forEach((item) => {
+        function focusElement(element, { preventScroll = false, ensureVisible = true } = {}) {
+            if (!element || typeof element.focus !== 'function') {
+                return;
+            }
+
+            try {
+                element.focus({ preventScroll });
+            } catch (error) {
+                element.focus();
+            }
+
+            if (ensureVisible) {
+                try {
+                    element.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+                } catch (error) {
+                    element.scrollIntoView();
+                }
+            }
+        }
+
+        function getActiveItem() {
+            return playlistItems.find((entry) => entry.classList.contains('watch-playlist__item--active')) || null;
+        }
+
+        function focusFirstNavItem() {
+            const target = navLinks[0] || navActions[0] || null;
+            if (target) {
+                focusElement(target, { preventScroll: true, ensureVisible: false });
+            }
+        }
+
+        function focusActivePlaylistOrPlayer() {
+            const activeItem = getActiveItem();
+            if (activeItem) {
+                focusElement(activeItem, { preventScroll: true });
+                return;
+            }
+
+            if (player) {
+                focusElement(player, { preventScroll: true });
+            }
+        }
+
+        function activateItemByOffset(offset, { focus = true } = {}) {
+            if (!Number.isFinite(offset) || offset === 0) {
+                return null;
+            }
+
+            const currentIndex = playlistItems.findIndex((entry) => entry.classList.contains('watch-playlist__item--active'));
+            if (currentIndex < 0) {
+                return null;
+            }
+
+            const nextIndex = Math.max(0, Math.min(playlistItems.length - 1, currentIndex + offset));
+            if (nextIndex === currentIndex) {
+                return null;
+            }
+
+            const nextItem = playlistItems[nextIndex];
+            if (!nextItem) {
+                return null;
+            }
+
+            setActive(nextItem);
+
+            if (focus) {
+                focusElement(nextItem);
+            }
+
+            return nextItem;
+        }
+
+        function togglePlayback() {
+            if (!player) {
+                return;
+            }
+
+            if (player.paused) {
+                player.play().catch(() => {});
+            } else {
+                player.pause();
+            }
+        }
+
+        const controlContext = {
+            player,
+            playlistItems,
+            navLinks,
+            navActions,
+            qualitySelect,
+            setActive,
+            getActiveItem,
+            focusElement,
+            focusFirstNavItem,
+            focusActivePlaylistOrPlayer,
+            activateItemByOffset,
+            togglePlayback,
+        };
+
+        window.watchControlContext = controlContext;
+        window.watchRemoteContext = controlContext;
+        document.dispatchEvent(
+            new CustomEvent('watch:control-context-ready', { detail: controlContext })
+        );
+        document.dispatchEvent(
+            new CustomEvent('watch:remote-context-ready', { detail: controlContext })
+        );
+
+        playlistItems.forEach((item, index) => {
             item.addEventListener('click', () => {
                 setActive(item);
             });
+
         });
 
         if (qualitySelect) {
             qualitySelect.addEventListener('change', () => {
-                const currentItem = playlistItems.find((entry) => entry.classList.contains('watch-playlist__item--active'));
+                const currentItem = getActiveItem();
                 preferredQuality = qualitySelect.value || null;
 
                 if (!currentItem) {
@@ -285,6 +397,9 @@
         const activeItem = playlistItems.find((item) => item.dataset.active === 'true') || playlistItems[0] || null;
         if (activeItem) {
             setActive(activeItem);
+            if (document.activeElement === document.body || document.activeElement === null) {
+                focusElement(activeItem, { preventScroll: true, ensureVisible: false });
+            }
         }
     }
 
