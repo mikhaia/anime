@@ -178,6 +178,11 @@ main {
     pointer-events: none;
 }
 
+.page-content.overflow-visible::before {
+    inset: 0;
+    border-radius: 1.75rem;
+}
+
 .page-profile .profile-avatar {
     display: inline-flex;
     align-items: center;

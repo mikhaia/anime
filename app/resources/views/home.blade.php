@@ -7,7 +7,7 @@
         <h1 class="page-title">Поиск аниме</h1>
         <p class="page-subtitle">Найдите любимые тайтлы по названию, жанру или году выхода.</p>
     </header>
-    <section class="page-content page-content--wide">
+    <section class="page-content page-content--wide overflow-visible">
         <form
             class="mx-auto w-full max-w-3xl space-y-3"
             action="{{ url('/list') }}"
