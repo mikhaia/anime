@@ -113,9 +113,9 @@ class AnilibriaClient
             ];
         }
 
-        $url = sprintf('%s%s', self::API_BASE_URL, self::CATALOG_ENDPOINT);
+        $url = sprintf('%s/api/v1/app/search/releases', self::BASE_URL);
         $payload = $this->makeRequest($url, [
-            'search' => $query,
+            'query' => $query,
             'page' => max(1, $page),
         ]);
 
@@ -127,8 +127,28 @@ class AnilibriaClient
             ];
         }
 
+        $hasNextPage = false;
+        $rawItems = [];
+        if (array_is_list($payload)) {
+            $rawItems = $payload;
+        } else {
+            $rawItems = Arr::get($payload, 'items', Arr::get($payload, 'data', []));
+            $hasNextPage = (bool) Arr::get(
+                $payload,
+                'has_next_page',
+                Arr::get($payload, 'meta.pagination.links.next', false)
+            );
+            if (!is_array($rawItems)) {
+                $rawItems = [];
+            }
+        }
+
         $items = [];
-        foreach (Arr::get($payload, 'data', []) as $release) {
+        foreach ($rawItems as $release) {
+            if (!is_array($release)) {
+                continue;
+            }
+
             $normalized = $this->normalizeRelease($release);
             if ($normalized) {
                 $items[] = $normalized;
@@ -137,7 +157,7 @@ class AnilibriaClient
 
         return [
             'items' => $items,
-            'has_next_page' => (bool) Arr::get($payload, 'meta.pagination.links.next'),
+            'has_next_page' => $hasNextPage && count($items) > 0,
             'success' => true,
         ];
     }
