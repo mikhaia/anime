@@ -1,7 +1,7 @@
 (function () {
     const APP_BASE_URL = window.location.origin;
     const ANILIBRIA_BASE_URL = 'https://anilibria.top';
-    const ANILIBRIA_SEARCH_URL = `${ANILIBRIA_BASE_URL}/api/v1/app/search/releases`;
+    const APP_SEARCH_URL = new URL('/api/anime/search', APP_BASE_URL).toString();
 
     const authButton = document.querySelector('[data-auth-button]');
     const loginModal = document.querySelector('[data-login-modal]');
@@ -991,7 +991,7 @@
         }
 
         function buildSearchUrl(query, page) {
-            const url = new URL(ANILIBRIA_SEARCH_URL);
+            const url = new URL(APP_SEARCH_URL);
             url.searchParams.set('query', query);
             if (page > 1) {
                 url.searchParams.set('page', String(page));
