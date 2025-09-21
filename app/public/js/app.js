@@ -482,7 +482,7 @@
         }
 
         if (text) {
-            text.textContent = active ? 'Удалить из избранного' : 'Добавить в избранное';
+            text.textContent = active ? 'В избранном' : 'В избранное';
         }
     }
 
@@ -523,6 +523,8 @@
         button.dataset.favoriteButton = 'true';
         button.dataset.animeId = String(payload.id);
         button.dataset.animePayload = JSON.stringify(payload);
+        button.setAttribute('aria-pressed', 'false');
+        button.setAttribute('aria-label', 'Добавить в избранное');
 
         const icon = document.createElement('span');
         icon.className = 'material-symbols-outlined anime-card__favorite-icon';

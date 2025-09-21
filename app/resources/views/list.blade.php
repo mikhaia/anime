@@ -90,18 +90,26 @@
                                 </div>
                             </a>
                             <div class="anime-card__actions" data-anime-card-actions aria-hidden="true">
-                                <a class="anime-card__action anime-card__action--watch" href="{{ $watchUrl }}">Смотреть</a>
-                                <button
-                                    class="anime-card__action anime-card__action--favorite anime-card__favorite anime-card__favorite--active"
-                                    type="button"
-                                    data-favorite-button
-                                    data-anime-id="{{ $anime->getKey() }}"
-                                    data-anime-payload='@json($payload, JSON_UNESCAPED_UNICODE)'
-                                >
-                                    <span class="material-symbols-outlined anime-card__favorite-icon" data-favorite-icon>favorite</span>
-                                    <span class="anime-card__favorite-text" data-favorite-text>Удалить из избранного</span>
-                                </button>
-                                <a class="anime-card__action anime-card__action--details" href="{{ $detailsUrl }}">Описание</a>
+                                <div class="anime-card__actions-section">
+                                    <a class="anime-card__action anime-card__action--watch" href="{{ $watchUrl }}">Смотреть</a>
+                                </div>
+                                <div class="anime-card__actions-section">
+                                    <a class="anime-card__action anime-card__action--details" href="{{ $detailsUrl }}">Описание</a>
+                                </div>
+                                <div class="anime-card__actions-section">
+                                    <button
+                                        class="anime-card__action anime-card__action--favorite anime-card__favorite anime-card__favorite--active"
+                                        type="button"
+                                        data-favorite-button
+                                        data-anime-id="{{ $anime->getKey() }}"
+                                        data-anime-payload='@json($payload, JSON_UNESCAPED_UNICODE)'
+                                        aria-pressed="true"
+                                        aria-label="Удалить из избранного"
+                                    >
+                                        <span class="material-symbols-outlined anime-card__favorite-icon" data-favorite-icon>favorite</span>
+                                        <span class="anime-card__favorite-text" data-favorite-text>В избранном</span>
+                                    </button>
+                                </div>
                             </div>
                         </article>
                     @endforeach
