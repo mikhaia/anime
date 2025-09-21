@@ -91,7 +91,6 @@
                             </a>
                             <div class="anime-card__actions" data-anime-card-actions aria-hidden="true">
                                 <a class="anime-card__action anime-card__action--watch" href="{{ $watchUrl }}">Смотреть</a>
-                                <a class="anime-card__action anime-card__action--details" href="{{ $detailsUrl }}">Описание</a>
                                 <button
                                     class="anime-card__action anime-card__action--favorite anime-card__favorite anime-card__favorite--active"
                                     type="button"
@@ -102,6 +101,7 @@
                                     <span class="material-symbols-outlined anime-card__favorite-icon" data-favorite-icon>favorite</span>
                                     <span class="anime-card__favorite-text" data-favorite-text>Удалить из избранного</span>
                                 </button>
+                                <a class="anime-card__action anime-card__action--details" href="{{ $detailsUrl }}">Описание</a>
                             </div>
                         </article>
                     @endforeach
