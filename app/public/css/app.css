@@ -488,7 +488,7 @@ main {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    background: transparent;
+    background: rgba(15, 23, 42, 0.92);
     color: inherit;
     font: inherit;
     font-size: 0.95rem;

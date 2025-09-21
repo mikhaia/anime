@@ -5,5 +5,4 @@ Homestead.yaml
 .env
 .env.testing
 database/database.sqlite
-public/data/avatars/
 .phpunit.result.cache
