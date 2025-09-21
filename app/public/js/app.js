@@ -482,7 +482,7 @@
         }
 
         if (text) {
-            text.textContent = active ? 'В избранном' : 'Добавить в избранное';
+            text.textContent = active ? 'В избранном' : 'В избранное';
         }
     }
 
@@ -534,7 +534,7 @@
         const text = document.createElement('span');
         text.className = 'anime-card__favorite-text';
         text.dataset.favoriteText = '';
-        text.textContent = 'Добавить в избранное';
+        text.textContent = 'В избранное';
 
         button.append(icon, text);
         updateFavoriteButtonAppearance(button, isFavorite(payload.id));

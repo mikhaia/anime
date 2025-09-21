@@ -136,12 +136,22 @@
         actions.appendChild(wrapAction(watchAction));
         actions.appendChild(wrapAction(detailsAction));
 
+        let favoriteControl = null;
         if (createFavoriteButton) {
-            const favoriteButton = createFavoriteButton(favoritePayload);
-            if (favoriteButton) {
-                actions.appendChild(wrapAction(favoriteButton));
-            }
+            favoriteControl = createFavoriteButton(favoritePayload);
         }
+
+        if (!favoriteControl) {
+            const placeholder = document.createElement('button');
+            placeholder.type = 'button';
+            placeholder.className = 'anime-card__action anime-card__action--favorite anime-card__favorite';
+            placeholder.textContent = 'В избранное';
+            placeholder.disabled = true;
+            placeholder.setAttribute('aria-disabled', 'true');
+            favoriteControl = placeholder;
+        }
+
+        actions.appendChild(wrapAction(favoriteControl));
 
         if (typeof cardsModule.normalizeActions === 'function') {
             cardsModule.normalizeActions(actions);
