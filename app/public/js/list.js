@@ -116,11 +116,17 @@
         actions.dataset.animeCardActions = 'true';
         actions.setAttribute('aria-hidden', 'true');
 
+        const detailsAction = document.createElement('a');
+        detailsAction.className = 'anime-card__action anime-card__action--details';
+        detailsAction.href = '/details';
+        detailsAction.textContent = 'Описание';
         const watchAction = document.createElement('a');
         watchAction.className = 'anime-card__action anime-card__action--watch';
         watchAction.href = watchUrl;
         watchAction.textContent = 'Смотреть';
+
         actions.appendChild(watchAction);
+        actions.appendChild(detailsAction);
 
         if (createFavoriteButton) {
             const favoriteButton = createFavoriteButton(favoritePayload);
@@ -128,12 +134,6 @@
                 actions.appendChild(favoriteButton);
             }
         }
-
-        const detailsAction = document.createElement('a');
-        detailsAction.className = 'anime-card__action anime-card__action--details';
-        detailsAction.href = '/details';
-        detailsAction.textContent = 'Описание';
-        actions.appendChild(detailsAction);
 
         card.appendChild(actions);
 
