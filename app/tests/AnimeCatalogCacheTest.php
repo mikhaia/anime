@@ -5,6 +5,7 @@ namespace Tests;
 use App\Models\Anime;
 use App\Models\AnimeCatalogCache;
 use App\Support\AnilibriaClient;
+use App\Support\PosterStorage;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Arr;
 use Laravel\Lumen\Testing\DatabaseMigrations;
@@ -66,6 +67,53 @@ class AnimeCatalogCacheTest extends TestCase
 
         $this->clientStub = $client;
         $this->app->instance(AnilibriaClient::class, $client);
+
+        $posterStorage = new class {
+            public function store($source, $existingPoster, $existingRemote, $animeId)
+            {
+                if (!is_string($source) || trim($source) === '') {
+                    return $existingPoster;
+                }
+
+                $trimmed = trim($source);
+                if (str_starts_with($trimmed, '/data/posters/')) {
+                    return ltrim($trimmed, '/');
+                }
+
+                if (str_starts_with($trimmed, 'data/posters/')) {
+                    return $trimmed;
+                }
+
+                return sprintf('data/posters/%d-test.jpg', (int) $animeId);
+            }
+
+            public function resolvePosterUrl($source, $existingRemote)
+            {
+                if (!is_string($source) || trim($source) === '') {
+                    return $existingRemote;
+                }
+
+                $trimmed = trim($source);
+                if (str_starts_with($trimmed, 'http://') || str_starts_with($trimmed, 'https://')) {
+                    return $trimmed;
+                }
+
+                return $existingRemote;
+            }
+
+            public function buildPublicUrl($poster)
+            {
+                if (!is_string($poster) || trim($poster) === '') {
+                    return null;
+                }
+
+                $trimmed = trim($poster);
+
+                return '/' . ltrim($trimmed, '/');
+            }
+        };
+
+        $this->app->instance(PosterStorage::class, $posterStorage);
     }
 
     public function test_catalog_response_is_cached(): void

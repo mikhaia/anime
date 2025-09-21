@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Anime;
 use App\Models\AnimeCatalogCache;
 use App\Support\AnilibriaClient;
+use App\Support\PosterStorage;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Carbon\CarbonImmutable;
@@ -62,26 +63,7 @@ class AnimeController extends Controller
         $ids = [];
 
         foreach (Arr::get($result, 'items', []) as $release) {
-            $englishTitle = null;
-            if (is_string($release['title_english'] ?? null)) {
-                $trimmed = trim((string) $release['title_english']);
-                if ($trimmed !== '') {
-                    $englishTitle = $trimmed;
-                }
-            }
-
-            $anime = Anime::updateOrCreate(
-                ['id' => $release['id']],
-                [
-                    'title' => $release['title'],
-                    'title_english' => $englishTitle,
-                    'poster_url' => $release['poster_url'],
-                    'type' => $release['type'],
-                    'year' => $release['year'],
-                    'episodes_total' => $release['episodes_total'],
-                    'alias' => $release['alias'],
-                ]
-            );
+            $anime = $this->persistAnimeRelease($release);
 
             $ids[] = $anime->getKey();
             $items[] = $this->formatAnime($anime);
@@ -136,26 +118,7 @@ class AnimeController extends Controller
 
         $items = [];
         foreach (Arr::get($result, 'items', []) as $release) {
-            $englishTitle = null;
-            if (is_string($release['title_english'] ?? null)) {
-                $trimmed = trim((string) $release['title_english']);
-                if ($trimmed !== '') {
-                    $englishTitle = $trimmed;
-                }
-            }
-
-            $anime = Anime::updateOrCreate(
-                ['id' => $release['id']],
-                [
-                    'title' => $release['title'],
-                    'title_english' => $englishTitle,
-                    'poster_url' => $release['poster_url'],
-                    'type' => $release['type'],
-                    'year' => $release['year'],
-                    'episodes_total' => $release['episodes_total'],
-                    'alias' => $release['alias'],
-                ]
-            );
+            $anime = $this->persistAnimeRelease($release);
 
             $items[] = $this->formatAnime($anime);
         }
@@ -236,7 +199,8 @@ class AnimeController extends Controller
             'id' => (int) $anime->getKey(),
             'title' => $anime->title,
             'title_english' => $anime->title_english,
-            'poster_url' => $anime->poster_url,
+            'poster' => $this->buildPosterUrl($anime),
+            'poster_url' => $this->buildPosterUrl($anime),
             'type' => $anime->type,
             'year' => $anime->year !== null ? (int) $anime->year : null,
             'episodes_total' => $anime->episodes_total !== null ? (int) $anime->episodes_total : null,
@@ -247,5 +211,75 @@ class AnimeController extends Controller
     private function escapeLike(string $value): string
     {
         return addcslashes($value, '\\%_');
+    }
+
+    private function persistAnimeRelease(array $release): Anime
+    {
+        $id = (int) ($release['id'] ?? 0);
+        if ($id <= 0) {
+            throw new \InvalidArgumentException('Release identifier must be a positive integer.');
+        }
+
+        $existing = Anime::query()->find($id);
+
+        $englishTitle = $this->normalizeEnglishTitle($release['title_english'] ?? null);
+
+        /** @var PosterStorage $posterStorage */
+        $posterStorage = app(PosterStorage::class);
+
+        $existingPoster = $existing?->poster;
+        $existingRemote = $existing?->getRawOriginal('poster_url');
+
+        $posterPath = $posterStorage->store(
+            $release['poster_url'] ?? null,
+            $existingPoster,
+            $existingRemote,
+            $id
+        );
+
+        $posterSource = $posterStorage->resolvePosterUrl(
+            $release['poster_url'] ?? null,
+            $existingRemote
+        );
+
+        return Anime::updateOrCreate(
+            ['id' => $id],
+            [
+                'title' => $release['title'] ?? 'Неизвестное аниме',
+                'title_english' => $englishTitle,
+                'poster_url' => $posterSource,
+                'poster' => $posterPath,
+                'type' => $release['type'] ?? null,
+                'year' => $release['year'] ?? null,
+                'episodes_total' => $release['episodes_total'] ?? null,
+                'alias' => $release['alias'] ?? null,
+            ]
+        );
+    }
+
+    private function normalizeEnglishTitle($value): ?string
+    {
+        if (!is_string($value)) {
+            return null;
+        }
+
+        $trimmed = trim($value);
+
+        return $trimmed === '' ? null : $trimmed;
+    }
+
+    private function buildPosterUrl(Anime $anime): ?string
+    {
+        /** @var PosterStorage $posterStorage */
+        $posterStorage = app(PosterStorage::class);
+
+        $public = $posterStorage->buildPublicUrl($anime->poster);
+        if ($public !== null) {
+            return $public;
+        }
+
+        $source = $anime->getRawOriginal('poster_url');
+
+        return is_string($source) && trim($source) !== '' ? $source : null;
     }
 }
