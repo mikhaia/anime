@@ -5,6 +5,7 @@
     const ANILIBRIA_SEARCH_URL = `${ANILIBRIA_BASE_URL}/api/v1/app/search/releases`;
 
     const favoritesModule = window.NeAnime?.favorites || {};
+    const cardsModule = window.NeAnime?.cards || {};
     const createFavoritePayload =
         typeof favoritesModule.createPayload === 'function' ? favoritesModule.createPayload : null;
     const createFavoriteButton =
@@ -140,6 +141,10 @@
             if (favoriteButton) {
                 actions.appendChild(wrapAction(favoriteButton));
             }
+        }
+
+        if (typeof cardsModule.normalizeActions === 'function') {
+            cardsModule.normalizeActions(actions);
         }
 
         card.appendChild(actions);

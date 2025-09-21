@@ -721,6 +721,63 @@
         }
     }
 
+    function normalizeCardActions(actionsElement) {
+        if (!actionsElement) {
+            return;
+        }
+
+        const selectors = [
+            '.anime-card__action--watch',
+            '.anime-card__action--details',
+            '.anime-card__action--favorite',
+        ];
+
+        const sections = [];
+
+        selectors.forEach((selector) => {
+            const action = actionsElement.querySelector(selector);
+            if (!action) {
+                return;
+            }
+
+            let section = action.closest('.anime-card__actions-section');
+            if (!section) {
+                section = document.createElement('div');
+                section.className = 'anime-card__actions-section';
+            } else {
+                Array.from(section.children).forEach((child) => {
+                    if (child !== action) {
+                        section.removeChild(child);
+                    }
+                });
+            }
+
+            if (action.parentElement !== section) {
+                section.appendChild(action);
+            }
+
+            sections.push(section);
+        });
+
+        if (sections.length > 0) {
+            actionsElement.innerHTML = '';
+            sections.forEach((section) => {
+                actionsElement.appendChild(section);
+            });
+        }
+    }
+
+    function normalizeAllCardActions(root = document) {
+        if (!root) {
+            return;
+        }
+
+        const containers = root.querySelectorAll('[data-anime-card-actions]');
+        containers.forEach((actionsElement) => {
+            normalizeCardActions(actionsElement);
+        });
+    }
+
     document.addEventListener('click', (event) => {
         const trigger = event.target.closest('[data-anime-card-trigger]');
         if (trigger) {
@@ -757,6 +814,8 @@
         }
     });
 
+    normalizeAllCardActions();
+
     document.addEventListener('click', (event) => {
         const button = event.target.closest('[data-favorite-button]');
         if (!button) {
@@ -771,6 +830,10 @@
         const animeId = button.dataset.animeId;
         updateFavoriteButtonAppearance(button, isFavorite(animeId));
     });
+
+    const cardsModule = globalNamespace.cards || (globalNamespace.cards = {});
+    cardsModule.normalizeActions = normalizeCardActions;
+    cardsModule.normalizeAllActions = normalizeAllCardActions;
 
     globalNamespace.favorites = {
         isFavorite,
