@@ -842,7 +842,7 @@
         unmarkFavorite,
         createPayload: createFavoritePayload,
         createButton: createFavoriteButton,
-        updateButtonAppearance,
+        updateButtonAppearance: updateFavoriteButtonAppearance,
         refreshButtons: refreshFavoriteButtons,
     };
 })();
