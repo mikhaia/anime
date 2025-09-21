@@ -13,6 +13,7 @@ class Anime extends Model
         'id',
         'title',
         'title_english',
+        'poster',
         'poster_url',
         'type',
         'year',
@@ -32,5 +33,14 @@ class Anime extends Model
     public function watchProgress(): HasMany
     {
         return $this->hasMany(WatchProgress::class);
+    }
+
+    public function getPosterUrlAttribute($value): ?string
+    {
+        if (is_string($this->poster) && trim($this->poster) !== '') {
+            return '/' . ltrim($this->poster, '/');
+        }
+
+        return $value !== null ? (string) $value : null;
     }
 }

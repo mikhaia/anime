@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Anime;
 use App\Models\Favorite;
 use App\Support\Auth;
+use App\Support\PosterStorage;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -30,20 +31,30 @@ class FavoriteController extends Controller
             'alias' => 'nullable|string|max:255',
         ]);
 
-        $englishTitle = null;
-        if (is_string($data['title_english'] ?? null)) {
-            $trimmed = trim((string) $data['title_english']);
-            if ($trimmed !== '') {
-                $englishTitle = $trimmed;
-            }
-        }
+        $existing = Anime::query()->find((int) $data['id']);
+
+        /** @var PosterStorage $posterStorage */
+        $posterStorage = app(PosterStorage::class);
+
+        $posterPath = $posterStorage->store(
+            $data['poster'] ?? null,
+            $existing?->poster,
+            $existing?->getRawOriginal('poster_url'),
+            (int) $data['id']
+        );
+
+        $posterSource = $posterStorage->resolvePosterUrl(
+            $data['poster'] ?? null,
+            $existing?->getRawOriginal('poster_url')
+        );
 
         $anime = Anime::updateOrCreate(
             ['id' => $data['id']],
             [
                 'title' => $data['title'],
-                'title_english' => $englishTitle,
-                'poster_url' => $data['poster'] ?? null,
+                'title_english' => $this->normalizeEnglishTitle($data['title_english'] ?? null),
+                'poster_url' => $posterSource,
+                'poster' => $posterPath,
                 'type' => $data['type'] ?? null,
                 'year' => $data['year'] ?? null,
                 'episodes_total' => $data['episodes'] ?? null,
@@ -87,5 +98,16 @@ class FavoriteController extends Controller
         return response()->json([
             'status' => 'removed',
         ]);
+    }
+
+    private function normalizeEnglishTitle($value): ?string
+    {
+        if (!is_string($value)) {
+            return null;
+        }
+
+        $trimmed = trim($value);
+
+        return $trimmed === '' ? null : $trimmed;
     }
 }
