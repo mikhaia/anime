@@ -66,6 +66,7 @@ $router->post('/register', 'AuthController@register');
 $router->post('/login', 'AuthController@login');
 $router->post('/logout', 'AuthController@logout');
 $router->get('/switch-user', 'AuthController@switchUser');
+$router->post('/switch-user/login', 'AuthController@loginFromDevice');
 $router->post('/favorites', 'FavoriteController@store');
 $router->delete('/favorites/{animeId:[0-9]+}', 'FavoriteController@destroy');
 $router->post('/watch-progress', 'WatchProgressController@store');

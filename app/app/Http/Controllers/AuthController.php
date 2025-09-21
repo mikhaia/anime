@@ -77,9 +77,56 @@ class AuthController extends Controller
             ->orderByDesc('last_used_at')
             ->get();
 
+        $redirect = trim((string) $request->input('redirect', ''));
+
         return view('switch-user', [
             'deviceLogins' => $logins,
+            'redirectTarget' => $redirect,
+            'loginRedirect' => $redirect !== '' ? $redirect : '/',
         ])->render();
+    }
+
+    public function loginFromDevice(Request $request): RedirectResponse
+    {
+        $redirectTarget = trim((string) $request->input('redirect', ''));
+        $redirect = $this->redirectUrl($request);
+        $loginId = (int) $request->input('login_id');
+
+        if ($loginId <= 0) {
+            return $this->redirectBackToSwitchUser($redirectTarget);
+        }
+
+        $deviceHash = DeviceIdentifier::hashForRequest($request);
+
+        $deviceLogin = DeviceLogin::with('user')
+            ->where('device_hash', $deviceHash)
+            ->where('id', $loginId)
+            ->first();
+
+        if (!$deviceLogin || !$deviceLogin->user) {
+            return $this->redirectBackToSwitchUser($redirectTarget);
+        }
+
+        $user = $deviceLogin->user;
+
+        Auth::login($user);
+
+        $deviceLogin->forceFill([
+            'ip_address' => (string) $request->ip(),
+            'user_agent' => mb_substr((string) $request->userAgent(), 0, 512),
+            'last_used_at' => Carbon::now(),
+        ])->save();
+
+        return redirect($redirect);
+    }
+
+    protected function redirectBackToSwitchUser(string $redirectTarget): RedirectResponse
+    {
+        $query = $redirectTarget !== ''
+            ? '?redirect=' . urlencode($redirectTarget)
+            : '';
+
+        return redirect('/switch-user' . $query);
     }
 
     public function showRegister(): string
