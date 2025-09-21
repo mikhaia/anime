@@ -372,7 +372,7 @@ main {
     position: absolute;
     inset: 0;
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
     align-items: stretch;
     gap: 1px;
     background: rgba(148, 163, 184, 0.25);
@@ -382,13 +382,6 @@ main {
     pointer-events: none;
     transition: opacity 0.25s ease;
     z-index: 2;
-}
-
-@supports (display: grid) {
-    .anime-card__actions {
-        display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
 }
 
 .anime-card__actions-section {
