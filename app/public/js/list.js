@@ -83,16 +83,106 @@
         });
     }
 
-    function findCardInDirection(currentCard, direction) {
-        if (!currentCard) {
+    function normalizeRowEntries(row) {
+        return row
+            .slice()
+            .sort((a, b) => a.centerX - b.centerX)
+            .map((entry) => entry.card);
+    }
+
+    function groupCardsByRow(cards) {
+        const rows = [];
+        const rowTops = [];
+        const TOP_TOLERANCE = 8;
+
+        cards.forEach((card) => {
+            const rect = card.getBoundingClientRect();
+            const offsetTop = Number.isFinite(card.offsetTop) ? card.offsetTop : rect.top;
+            const offsetLeft = Number.isFinite(card.offsetLeft) ? card.offsetLeft : rect.left;
+            const offsetWidth = Number.isFinite(card.offsetWidth) ? card.offsetWidth : rect.width;
+            const centerX = offsetLeft + offsetWidth / 2;
+
+            let rowIndex = rowTops.findIndex((rowTop) => Math.abs(rowTop - offsetTop) <= TOP_TOLERANCE);
+            if (rowIndex === -1) {
+                rowIndex = rowTops.length;
+                rowTops.push(offsetTop);
+                rows[rowIndex] = [];
+            }
+
+            rows[rowIndex].push({ card, centerX });
+        });
+
+        return rows.map((row) => normalizeRowEntries(row));
+    }
+
+    function findNearestInRow(row, columnIndex) {
+        if (!row || row.length === 0) {
             return null;
         }
 
-        const cards = getCardElements(document);
+        let bestCard = null;
+        let bestDelta = Number.POSITIVE_INFINITY;
+
+        row.forEach((card, index) => {
+            const delta = Math.abs(index - columnIndex);
+            if (delta < bestDelta) {
+                bestDelta = delta;
+                bestCard = card;
+            }
+        });
+
+        return bestCard;
+    }
+
+    function findCardInGridDirection(cards, currentCard, direction) {
         if (cards.length === 0) {
             return null;
         }
 
+        const rows = groupCardsByRow(cards);
+        let currentRowIndex = -1;
+        let currentColumnIndex = -1;
+
+        rows.some((row, rowIndex) => {
+            const columnIndex = row.indexOf(currentCard);
+            if (columnIndex !== -1) {
+                currentRowIndex = rowIndex;
+                currentColumnIndex = columnIndex;
+                return true;
+            }
+            return false;
+        });
+
+        if (currentRowIndex === -1 || currentColumnIndex === -1) {
+            return null;
+        }
+
+        const currentRow = rows[currentRowIndex];
+
+        if (direction === 'left') {
+            return currentRow[currentColumnIndex - 1] || null;
+        }
+
+        if (direction === 'right') {
+            return currentRow[currentColumnIndex + 1] || null;
+        }
+
+        if (direction === 'up' || direction === 'down') {
+            const offset = direction === 'up' ? -1 : 1;
+            const targetRow = rows[currentRowIndex + offset];
+            if (!targetRow) {
+                return null;
+            }
+
+            return (
+                targetRow[currentColumnIndex] || findNearestInRow(targetRow, currentColumnIndex)
+            );
+        }
+
+        return null;
+    }
+
+    function findCardByGeometry(cards, currentCard, direction) {
         const currentRect = currentCard.getBoundingClientRect();
         const currentCenterX = currentRect.left + currentRect.width / 2;
         const currentCenterY = currentRect.top + currentRect.height / 2;
@@ -172,6 +262,24 @@
         }
 
         return null;
+    }
+
+    function findCardInDirection(currentCard, direction) {
+        if (!currentCard) {
+            return null;
+        }
+
+        const cards = getCardElements(document);
+        if (cards.length === 0) {
+            return null;
+        }
+
+        const gridCandidate = findCardInGridDirection(cards, currentCard, direction);
+        if (gridCandidate) {
+            return gridCandidate;
+        }
+
+        return findCardByGeometry(cards, currentCard, direction);
     }
 
     function resolveWatchIdentifier(release, payload) {
