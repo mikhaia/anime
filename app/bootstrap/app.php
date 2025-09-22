@@ -98,7 +98,7 @@ $app->register(Illuminate\Hashing\HashServiceProvider::class);
 $app->alias('view', Illuminate\Contracts\View\Factory::class);
 $app->alias('view', Illuminate\Contracts\View\View::class);
 
-// $app->register(App\Providers\AppServiceProvider::class);
+$app->register(App\Providers\AppServiceProvider::class);
 // $app->register(App\Providers\AuthServiceProvider::class);
 // $app->register(App\Providers\EventServiceProvider::class);
 

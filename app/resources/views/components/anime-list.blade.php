@@ -1,29 +1,84 @@
 @php
     $mode = $mode ?? 'favorites';
-    $searchQuery = $searchQuery ?? '';
-    $statusMessages = [
-        'top' => 'Загружаем подборку…',
-        'new' => 'Загружаем подборку…',
-        'search' => ''
-    ];
-    $statusText = $statusMessages[$mode] ?? 'Загружаем подборку…';
+    $paginator = $paginator ?? null;
+    $items = $items ?? collect();
+
+    if ($paginator) {
+        $items = collect($paginator->items());
+    } elseif (!($items instanceof \Illuminate\Support\Collection)) {
+        $items = collect($items);
+    }
+
+    $errorMessage = $errorMessage ?? null;
+    $searchQuery = isset($searchQuery) ? (string) $searchQuery : '';
+    $emptyMessage = $emptyMessage ?? null;
+
+    if ($emptyMessage === null) {
+        if ($mode === 'search') {
+            $emptyMessage = $searchQuery !== ''
+                ? 'По запросу «' . e($searchQuery) . '» ничего не найдено.'
+                : 'Укажите поисковый запрос.';
+        } elseif (in_array($mode, ['top', 'new'], true)) {
+            $emptyMessage = 'Для этой подборки пока нет тайтлов. Загляните позже!';
+        } else {
+            $emptyMessage = 'Список пока пуст.';
+        }
+    }
 @endphp
 
-<div class="anime-list"
-     data-anime-list
-     data-mode="{{ $mode }}"
-     @if($mode === 'search')
-         data-anime-search-results
-         data-search-query="{{ $searchQuery }}"
-     @endif>
-    <div class="anime-list__status" data-anime-status role="status">
-        <span class="anime-list__status-spinner" aria-hidden="true"
-              @if($mode === 'search') style="display: none;" @endif></span>
-        <span class="anime-list__status-text">{{ $statusText }}</span>
-    </div>
-    <div class="anime-grid" data-anime-grid hidden></div>
-    <button class="anime-list__more" type="button" data-load-more hidden>
-        <span class="material-symbols-outlined" aria-hidden="true">refresh</span>
-        Показать ещё
-    </button>
+<div class="anime-list" data-anime-list data-mode="{{ $mode }}">
+    @if($errorMessage)
+        <div class="anime-list__status" role="status">
+            <span class="anime-list__status-text">{{ $errorMessage }}</span>
+        </div>
+    @endif
+
+    @if($items->isNotEmpty())
+        <div class="anime-grid">
+            @foreach($items as $anime)
+                @include('components.anime-card', ['anime' => $anime])
+            @endforeach
+        </div>
+    @elseif(!$errorMessage)
+        <div class="anime-list__status" role="status">
+            <span class="anime-list__status-text">{{ $emptyMessage }}</span>
+        </div>
+    @endif
+
+    @if($paginator && ($paginator->hasMorePages() || !$paginator->onFirstPage()))
+        <nav class="anime-list__pagination" aria-label="Навигация по страницам">
+            <div class="anime-list__pagination-controls">
+                @if($paginator->onFirstPage())
+                    <span class="anime-list__more" aria-disabled="true" tabindex="-1">
+                        <span class="material-symbols-outlined" aria-hidden="true">navigate_before</span>
+                        Назад
+                    </span>
+                @else
+                    <a class="anime-list__more" href="{{ $paginator->previousPageUrl() }}" rel="prev">
+                        <span class="material-symbols-outlined" aria-hidden="true">navigate_before</span>
+                        Назад
+                    </a>
+                @endif
+
+                <span class="anime-list__page-indicator">
+                    Страница {{ $paginator->currentPage() }}
+                    @if($paginator instanceof \Illuminate\Pagination\LengthAwarePaginator && $paginator->lastPage() > 0)
+                        из {{ $paginator->lastPage() }}
+                    @endif
+                </span>
+
+                @if($paginator->hasMorePages())
+                    <a class="anime-list__more" href="{{ $paginator->nextPageUrl() }}" rel="next">
+                        Вперёд
+                        <span class="material-symbols-outlined" aria-hidden="true">navigate_next</span>
+                    </a>
+                @else
+                    <span class="anime-list__more" aria-disabled="true" tabindex="-1">
+                        Вперёд
+                        <span class="material-symbols-outlined" aria-hidden="true">navigate_next</span>
+                    </span>
+                @endif
+            </div>
+        </nav>
+    @endif
 </div>

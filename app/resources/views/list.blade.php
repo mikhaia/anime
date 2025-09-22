@@ -30,9 +30,17 @@
     </header>
     <section class="page-content @if(in_array($mode, ['top', 'new', 'search'])) page-content--wide @endif">
         @if($mode === 'search')
-            @include('components.anime-list', ['mode' => 'search', 'searchQuery' => $searchQuery])
+            @include('components.anime-list', [
+                'mode' => 'search',
+                'paginator' => $searchPaginator ?? null,
+                'searchQuery' => $searchQuery,
+            ])
         @elseif(in_array($mode, ['top', 'new']))
-            @include('components.anime-list', ['mode' => $mode])
+            @include('components.anime-list', [
+                'mode' => $mode,
+                'paginator' => $catalogPaginator ?? null,
+                'errorMessage' => $catalogMessage ?? null,
+            ])
         @elseif($mode === 'favorites')
             @if(!$currentUser)
                 <p>Авторизуйтесь, чтобы добавлять аниме в избранное и быстро находить любимые тайтлы.</p>
@@ -46,72 +54,7 @@
                     @foreach($favorites as $favorite)
                         @php $anime = $favorite->anime; @endphp
                         @continue(!$anime)
-                        @php
-                            $metaParts = array_filter([
-                                $anime->type,
-                                $anime->year ? (string) $anime->year : null,
-                                $anime->episodes_total ? $anime->episodes_total . ' эп.' : null,
-                            ]);
-                            $payload = [
-                                'id' => (int) $anime->getKey(),
-                                'title' => $anime->title,
-                                'title_english' => $anime->title_english,
-                                'poster' => $anime->poster_url,
-                                'type' => $anime->type,
-                                'year' => $anime->year,
-                                'episodes' => $anime->episodes_total,
-                                'alias' => $anime->alias,
-                            ];
-                        @endphp
-                        <article class="anime-card" data-anime-card data-anime-id="{{ $anime->getKey() }}">
-                            @php
-                                $watchUrl = url('/watch/' . ($anime->alias ?: $anime->getKey()));
-                                $detailsUrl = url('/details');
-                            @endphp
-                            <a
-                                class="anime-card__link"
-                                href="{{ $watchUrl }}"
-                                data-anime-card-trigger
-                                aria-haspopup="true"
-                                aria-expanded="false"
-                                aria-label="Открыть варианты действий для «{{ $anime->title }}»"
-                            >
-                                @if($anime->poster_url)
-                                    <img class="anime-card__image" src="{{ $anime->poster_url }}"
-                                         alt="Постер аниме «{{ $anime->title }}»" loading="lazy" decoding="async">
-                                @else
-                                    <div class="anime-card__placeholder">Нет постера</div>
-                                @endif
-                                <div class="anime-card__overlay">
-                                    <h3 class="anime-card__title">{{ $anime->title }}</h3>
-                                    @if(!empty($metaParts))
-                                        <p class="anime-card__meta">{{ implode(' • ', $metaParts) }}</p>
-                                    @endif
-                                </div>
-                            </a>
-                            <div class="anime-card__actions" data-anime-card-actions aria-hidden="true">
-                                <div class="anime-card__actions-section">
-                                    <a class="anime-card__action anime-card__action--watch" href="{{ $watchUrl }}">Смотреть</a>
-                                </div>
-                                <div class="anime-card__actions-section">
-                                    <a class="anime-card__action anime-card__action--details" href="{{ $detailsUrl }}">Описание</a>
-                                </div>
-                                <div class="anime-card__actions-section">
-                                    <button
-                                        class="anime-card__action anime-card__action--favorite anime-card__favorite anime-card__favorite--active"
-                                        type="button"
-                                        data-favorite-button
-                                        data-anime-id="{{ $anime->getKey() }}"
-                                        data-anime-payload='@json($payload, JSON_UNESCAPED_UNICODE)'
-                                        aria-pressed="true"
-                                        aria-label="Удалить из избранного"
-                                    >
-                                        <span class="material-symbols-outlined anime-card__favorite-icon" data-favorite-icon>favorite</span>
-                                        <span class="anime-card__favorite-text" data-favorite-text>В избранном</span>
-                                    </button>
-                                </div>
-                            </div>
-                        </article>
+                        @include('components.anime-card', ['anime' => $anime, 'isFavorite' => true])
                     @endforeach
                 </div>
                 <p class="anime-list__status-text" data-favorites-empty @if($hasFavorites) hidden @endif>
@@ -124,6 +67,3 @@
     </section>
 @endsection
 
-@push('scripts')
-    <script src="/js/list.js" defer></script>
-@endpush

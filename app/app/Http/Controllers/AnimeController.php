@@ -3,90 +3,43 @@
 namespace App\Http\Controllers;
 
 use App\Models\Anime;
-use App\Models\AnimeCatalogCache;
-use App\Support\AnilibriaClient;
-use App\Support\PosterStorage;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Carbon\CarbonImmutable;
-use Illuminate\Support\Arr;
 
 class AnimeController extends Controller
 {
-    private const SORTING = [
-        'top' => 'RATING_DESC',
-        'new' => 'FRESH_AT_DESC',
-    ];
+    public function __construct(private readonly \App\Support\AnimeCatalogService $catalogService)
+    {
+    }
 
     public function catalog(Request $request, string $category): JsonResponse
     {
-        $category = strtolower($category);
-        $sorting = self::SORTING[$category] ?? null;
-        if ($sorting === null) {
+        $page = max(1, (int) $request->query('page', 1));
+
+        $result = $this->catalogService->getCatalogPage($category, $page);
+        if (!$result['valid']) {
             return response()->json([
                 'message' => 'Категория не найдена.',
             ], 404);
         }
 
-        $page = max(1, (int) $request->query('page', 1));
-        $today = CarbonImmutable::today();
-
-        $cache = AnimeCatalogCache::query()
-            ->where('category', $category)
-            ->where('page', $page)
-            ->first();
-
-        if ($cache && $cache->cached_date && $cache->cached_date->isSameDay($today)) {
-            $data = $this->loadCachedAnime($cache->anime_ids ?? []);
-
-            return response()->json([
-                'data' => $data,
-                'meta' => [
-                    'page' => $page,
-                    'has_next_page' => (bool) $cache->has_next_page,
-                    'cached' => true,
-                ],
-            ]);
-        }
-
-        /** @var AnilibriaClient $client */
-        $client = app(AnilibriaClient::class);
-        $result = $client->fetchCatalogPage($sorting, $page);
-
-        if (!Arr::get($result, 'success')) {
+        if ($result['failed'] && $result['items']->isEmpty()) {
             return response()->json([
                 'message' => 'Не удалось получить данные от сервера аниме.',
             ], 502);
         }
 
-        $items = [];
-        $ids = [];
-
-        foreach (Arr::get($result, 'items', []) as $release) {
-            $anime = $this->persistAnimeRelease($release);
-
-            $ids[] = $anime->getKey();
-            $items[] = $this->formatAnime($anime);
-        }
-
-        AnimeCatalogCache::updateOrCreate(
-            [
-                'category' => $category,
-                'page' => $page,
-            ],
-            [
-                'anime_ids' => $ids,
-                'cached_date' => $today,
-                'has_next_page' => (bool) Arr::get($result, 'has_next_page', false),
-            ]
-        );
+        $items = $result['items']
+            ->map(fn (Anime $anime) => $this->catalogService->formatAnime($anime))
+            ->values()
+            ->all();
 
         return response()->json([
             'data' => $items,
             'meta' => [
-                'page' => $page,
-                'has_next_page' => (bool) Arr::get($result, 'has_next_page', false),
-                'cached' => false,
+                'page' => $result['page'],
+                'has_next_page' => (bool) $result['has_next_page'],
+                'cached' => (bool) $result['cached'],
             ],
         ]);
     }
@@ -106,28 +59,21 @@ class AnimeController extends Controller
             ]);
         }
 
-        /** @var AnilibriaClient $client */
-        $client = app(AnilibriaClient::class);
-        $result = $client->searchReleases($query, $page);
+        $result = $this->catalogService->searchLocal($query, $page);
 
-        if (!Arr::get($result, 'success')) {
-            return response()->json([
-                'message' => 'Не удалось получить данные от сервера аниме.',
-            ], 502);
-        }
-
-        $items = [];
-        foreach (Arr::get($result, 'items', []) as $release) {
-            $anime = $this->persistAnimeRelease($release);
-
-            $items[] = $this->formatAnime($anime);
-        }
+        $items = collect($result->items())
+            ->filter()
+            ->map(fn ($item) => $item instanceof Anime ? $item : Anime::query()->find($item['id'] ?? null))
+            ->filter()
+            ->map(fn (Anime $anime) => $this->catalogService->formatAnime($anime))
+            ->values()
+            ->all();
 
         return response()->json([
             'data' => $items,
             'meta' => [
-                'page' => $page,
-                'has_next_page' => (bool) Arr::get($result, 'has_next_page', false),
+                'page' => $result->currentPage(),
+                'has_next_page' => $result->hasMorePages(),
             ],
         ]);
     }
@@ -171,115 +117,8 @@ class AnimeController extends Controller
         ]);
     }
 
-    private function loadCachedAnime(array $ids): array
-    {
-        if (empty($ids)) {
-            return [];
-        }
-
-        $animeCollection = Anime::query()
-            ->whereIn('id', $ids)
-            ->get()
-            ->keyBy('id');
-
-        $items = [];
-        foreach ($ids as $id) {
-            $anime = $animeCollection->get($id);
-            if ($anime) {
-                $items[] = $this->formatAnime($anime);
-            }
-        }
-
-        return $items;
-    }
-
-    private function formatAnime(Anime $anime): array
-    {
-        return [
-            'id' => (int) $anime->getKey(),
-            'title' => $anime->title,
-            'title_english' => $anime->title_english,
-            'poster' => $this->buildPosterUrl($anime),
-            'poster_url' => $this->buildPosterUrl($anime),
-            'type' => $anime->type,
-            'year' => $anime->year !== null ? (int) $anime->year : null,
-            'episodes_total' => $anime->episodes_total !== null ? (int) $anime->episodes_total : null,
-            'alias' => $anime->alias,
-        ];
-    }
-
     private function escapeLike(string $value): string
     {
         return addcslashes($value, '\\%_');
-    }
-
-    private function persistAnimeRelease(array $release): Anime
-    {
-        $id = (int) ($release['id'] ?? 0);
-        if ($id <= 0) {
-            throw new \InvalidArgumentException('Release identifier must be a positive integer.');
-        }
-
-        $existing = Anime::query()->find($id);
-
-        $englishTitle = $this->normalizeEnglishTitle($release['title_english'] ?? null);
-
-        /** @var PosterStorage $posterStorage */
-        $posterStorage = app(PosterStorage::class);
-
-        $existingPoster = $existing?->poster;
-        $existingRemote = $existing?->getRawOriginal('poster_url');
-
-        $posterPath = $posterStorage->store(
-            $release['poster_url'] ?? null,
-            $existingPoster,
-            $existingRemote,
-            $id
-        );
-
-        $posterSource = $posterStorage->resolvePosterUrl(
-            $release['poster_url'] ?? null,
-            $existingRemote
-        );
-
-        return Anime::updateOrCreate(
-            ['id' => $id],
-            [
-                'title' => $release['title'] ?? 'Неизвестное аниме',
-                'title_english' => $englishTitle,
-                'poster_url' => $posterSource,
-                'poster' => $posterPath,
-                'type' => $release['type'] ?? null,
-                'year' => $release['year'] ?? null,
-                'episodes_total' => $release['episodes_total'] ?? null,
-                'alias' => $release['alias'] ?? null,
-            ]
-        );
-    }
-
-    private function normalizeEnglishTitle($value): ?string
-    {
-        if (!is_string($value)) {
-            return null;
-        }
-
-        $trimmed = trim($value);
-
-        return $trimmed === '' ? null : $trimmed;
-    }
-
-    private function buildPosterUrl(Anime $anime): ?string
-    {
-        /** @var PosterStorage $posterStorage */
-        $posterStorage = app(PosterStorage::class);
-
-        $public = $posterStorage->buildPublicUrl($anime->poster);
-        if ($public !== null) {
-            return $public;
-        }
-
-        $source = $anime->getRawOriginal('poster_url');
-
-        return is_string($source) && trim($source) !== '' ? $source : null;
     }
 }
