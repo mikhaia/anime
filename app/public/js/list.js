@@ -307,6 +307,19 @@
         return `/watch/${encodeURIComponent(String(identifier))}`;
     }
 
+    let cachedActionsTemplate;
+
+    function getActionsTemplate() {
+        if (typeof cachedActionsTemplate === 'undefined') {
+            const container = document.querySelector('[data-anime-card-actions-template]');
+            cachedActionsTemplate = container
+                ? container.querySelector('.anime-card__actions')
+                : null;
+        }
+
+        return cachedActionsTemplate;
+    }
+
     function createAnimeCard(release) {
         const card = document.createElement('article');
         card.className = 'anime-card';
@@ -378,46 +391,76 @@
             card.dataset.animeId = String(cardIdentifier);
         }
 
-        const actions = document.createElement('div');
-        actions.className = 'anime-card__actions';
+        const template = getActionsTemplate();
+        const actions = template ? template.cloneNode(true) : document.createElement('div');
+        actions.classList.add('anime-card__actions');
         actions.dataset.animeCardActions = 'true';
         actions.setAttribute('aria-hidden', 'true');
-
-        function wrapAction(action) {
-            const section = document.createElement('div');
-            section.className = 'anime-card__actions-section';
-            section.appendChild(action);
-            return section;
+        if (actions.style && typeof actions.style.removeProperty === 'function') {
+            actions.style.removeProperty('display');
         }
 
-        const detailsAction = document.createElement('a');
-        detailsAction.className = 'anime-card__action anime-card__action--details';
-        detailsAction.href = '/details';
-        detailsAction.textContent = 'Описание';
-        const watchAction = document.createElement('a');
-        watchAction.className = 'anime-card__action anime-card__action--watch';
+        function ensureAction(selector, factory) {
+            let action = actions.querySelector(selector);
+            if (!action) {
+                action = factory();
+                const section = document.createElement('div');
+                section.className = 'anime-card__actions-section';
+                section.appendChild(action);
+                actions.appendChild(section);
+            }
+            return action;
+        }
+
+        const watchAction = ensureAction('.anime-card__action--watch', () => {
+            const link = document.createElement('a');
+            link.className = 'anime-card__action anime-card__action--watch';
+            link.textContent = 'Смотреть';
+            return link;
+        });
         watchAction.href = watchUrl;
         watchAction.textContent = 'Смотреть';
 
-        actions.appendChild(wrapAction(watchAction));
-        actions.appendChild(wrapAction(detailsAction));
+        const detailsAction = ensureAction('.anime-card__action--details', () => {
+            const link = document.createElement('a');
+            link.className = 'anime-card__action anime-card__action--details';
+            link.textContent = 'Описание';
+            return link;
+        });
+        detailsAction.href = '/details';
+        detailsAction.textContent = 'Описание';
+
+        const favoritePlaceholder = ensureAction('.anime-card__action--favorite', () => {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'anime-card__action anime-card__action--favorite anime-card__favorite';
+            button.textContent = 'В избранное';
+            return button;
+        });
 
         let favoriteControl = null;
         if (createFavoriteButton) {
             favoriteControl = createFavoriteButton(favoritePayload);
         }
 
-        if (!favoriteControl) {
-            const placeholder = document.createElement('button');
-            placeholder.type = 'button';
-            placeholder.className = 'anime-card__action anime-card__action--favorite anime-card__favorite';
-            placeholder.textContent = 'В избранное';
-            placeholder.disabled = true;
-            placeholder.setAttribute('aria-disabled', 'true');
-            favoriteControl = placeholder;
+        if (favoriteControl && favoritePlaceholder) {
+            const favoriteSection = favoritePlaceholder.closest('.anime-card__actions-section');
+            if (favoriteSection) {
+                favoriteSection.innerHTML = '';
+                favoriteSection.appendChild(favoriteControl);
+            } else if (favoritePlaceholder.parentElement) {
+                favoritePlaceholder.replaceWith(favoriteControl);
+            } else {
+                const section = document.createElement('div');
+                section.className = 'anime-card__actions-section';
+                section.appendChild(favoriteControl);
+                actions.appendChild(section);
+            }
+        } else if (favoritePlaceholder) {
+            favoritePlaceholder.disabled = true;
+            favoritePlaceholder.setAttribute('aria-disabled', 'true');
+            favoritePlaceholder.textContent = 'В избранное';
         }
-
-        actions.appendChild(wrapAction(favoriteControl));
 
         if (typeof cardsModule.normalizeActions === 'function') {
             cardsModule.normalizeActions(actions);
