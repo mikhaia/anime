@@ -358,7 +358,7 @@ main {
     background: linear-gradient(160deg, rgba(15, 23, 42, 0.9), rgba(30, 41, 59, 0.65));
     border: 1px solid rgba(148, 163, 184, 0.14);
     box-shadow: 0 24px 60px rgba(15, 23, 42, 0.6);
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 
 .anime-card__link {
@@ -380,7 +380,7 @@ main {
     overflow: hidden;
     opacity: 0;
     pointer-events: none;
-    transition: opacity 0.12s ease;
+    transition: opacity 0.25s ease;
     z-index: 2;
 }
 
@@ -426,16 +426,10 @@ main {
     color: #0f172a;
 }
 
-.anime-card:hover {
-    transform: translateY(-2px);
-    border-color: rgba(56, 189, 248, 0.65);
-    box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.35), 0 32px 80px rgba(15, 23, 42, 0.75);
-}
-
+.anime-card:hover,
 .anime-card:focus-within {
-    transform: translateY(-2px);
-    border: 3px solid orange;
-    box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.35), 0 32px 80px rgba(15, 23, 42, 0.75);
+    transform: translateY(-4px);
+    box-shadow: 0 32px 80px rgba(15, 23, 42, 0.75);
 }
 
 .anime-card__image {
@@ -444,12 +438,12 @@ main {
     aspect-ratio: 2 / 3;
     object-fit: cover;
     filter: saturate(1.05);
-    transition: transform 0.18s ease;
+    transition: transform 0.35s ease;
 }
 
 .anime-card:hover .anime-card__image,
 .anime-card:focus-within .anime-card__image {
-    transform: scale(1.01);
+    transform: scale(1.03);
 }
 
 .anime-card__placeholder {
@@ -471,7 +465,7 @@ main {
     bottom: 0;
     padding: 1rem 1.1rem 1.15rem;
     background: linear-gradient(180deg, rgba(15, 23, 42, 0) 0%, rgba(15, 23, 42, 0.85) 60%, rgba(15, 23, 42, 0.95) 100%);
-    transition: opacity 0.12s ease;
+    transition: opacity 0.25s ease;
     z-index: 1;
 }
 
@@ -544,7 +538,7 @@ main {
 }
 
 .anime-card--actions-visible .anime-card__image {
-    transform: scale(1.01);
+    transform: scale(1.02);
     filter: brightness(0.6) saturate(1.05);
 }
 
@@ -561,7 +555,7 @@ main {
     font-weight: 600;
     letter-spacing: 0.01em;
     cursor: pointer;
-    transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+    transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
 }
 
 .anime-list__more:hover,
