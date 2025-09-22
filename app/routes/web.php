@@ -24,7 +24,7 @@ $router->get('/', function () use ($router) {
 
 $router->get('/', 'HomeController@index');
 
-$router->get('/list', 'ListController@show');
+$router->get('/list', 'HomeController@list');
 
 $router->get('/details', function () {
     return view('details')->render();
