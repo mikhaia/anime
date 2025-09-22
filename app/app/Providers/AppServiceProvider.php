@@ -16,6 +16,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register()
     {
+        require_once app_path('Support/AnilibriaClient.php');
+        require_once app_path('Support/PosterStorage.php');
+        require_once app_path('Support/AnimeCatalogService.php');
+
         $this->app->singleton(AnilibriaClient::class, function (): AnilibriaClient {
             return new AnilibriaClient();
         });
