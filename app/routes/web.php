@@ -24,27 +24,7 @@ $router->get('/', function () use ($router) {
 
 $router->get('/', 'HomeController@index');
 
-$router->get('/list', function (Request $request) {
-    $mode = $request->input('mode', 'favorites');
-    $favorites = collect();
-    $searchQuery = trim((string) $request->input('search', ''));
-
-    if ($mode === 'favorites') {
-        $user = Auth::user();
-        if ($user) {
-            $favorites = $user->favorites()
-                ->with('anime')
-                ->orderByDesc('created_at')
-                ->get();
-        }
-    }
-
-    return view('list', [
-        'mode' => $mode,
-        'favorites' => $favorites,
-        'searchQuery' => $searchQuery,
-    ])->render();
-});
+$router->get('/list', 'ListController@show');
 
 $router->get('/details', function () {
     return view('details')->render();
