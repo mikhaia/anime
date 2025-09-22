@@ -16,6 +16,164 @@
         new: true,
     };
 
+    const ARROW_KEY_DIRECTIONS = {
+        ArrowUp: 'up',
+        ArrowDown: 'down',
+        ArrowLeft: 'left',
+        ArrowRight: 'right',
+    };
+
+    function isCardVisible(card) {
+        if (!card) {
+            return false;
+        }
+
+        if (card.closest('[hidden]')) {
+            return false;
+        }
+
+        const style = window.getComputedStyle(card);
+        if (style.display === 'none' || style.visibility === 'hidden' || Number(style.opacity) === 0) {
+            return false;
+        }
+
+        const rect = card.getBoundingClientRect();
+        return rect.width > 0 && rect.height > 0;
+    }
+
+    function getCardElements(root = document) {
+        if (!root || typeof root.querySelectorAll !== 'function') {
+            return [];
+        }
+
+        return Array.from(root.querySelectorAll('[data-anime-card]')).filter((card) => isCardVisible(card));
+    }
+
+    function getCardFocusTarget(card) {
+        if (!card) {
+            return null;
+        }
+
+        const target = card.querySelector('[data-anime-card-trigger]') || card;
+        return target instanceof HTMLElement ? target : null;
+    }
+
+    function focusCardElement(card) {
+        const target = getCardFocusTarget(card);
+        if (!target) {
+            return;
+        }
+
+        try {
+            target.focus({ preventScroll: true });
+        } catch (error) {
+            target.focus();
+        }
+    }
+
+    function focusFirstVisibleCard(root = document) {
+        window.requestAnimationFrame(() => {
+            const cards = getCardElements(root);
+            if (cards.length === 0) {
+                return;
+            }
+
+            const firstCard = cards[0];
+            focusCardElement(firstCard);
+        });
+    }
+
+    function findCardInDirection(currentCard, direction) {
+        if (!currentCard) {
+            return null;
+        }
+
+        const cards = getCardElements(document);
+        if (cards.length === 0) {
+            return null;
+        }
+
+        const currentRect = currentCard.getBoundingClientRect();
+        const currentCenterX = currentRect.left + currentRect.width / 2;
+        const currentCenterY = currentRect.top + currentRect.height / 2;
+
+        let bestCard = null;
+        let bestScore = Number.POSITIVE_INFINITY;
+
+        cards.forEach((card) => {
+            if (card === currentCard) {
+                return;
+            }
+
+            const rect = card.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+            const deltaX = centerX - currentCenterX;
+            const deltaY = centerY - currentCenterY;
+
+            let primaryDiff;
+            let secondaryDiff;
+
+            switch (direction) {
+                case 'left':
+                    if (deltaX >= -1) {
+                        return;
+                    }
+                    primaryDiff = Math.abs(deltaX);
+                    secondaryDiff = Math.abs(deltaY);
+                    break;
+                case 'right':
+                    if (deltaX <= 1) {
+                        return;
+                    }
+                    primaryDiff = Math.abs(deltaX);
+                    secondaryDiff = Math.abs(deltaY);
+                    break;
+                case 'up':
+                    if (deltaY >= -1) {
+                        return;
+                    }
+                    primaryDiff = Math.abs(deltaY);
+                    secondaryDiff = Math.abs(deltaX);
+                    break;
+                case 'down':
+                    if (deltaY <= 1) {
+                        return;
+                    }
+                    primaryDiff = Math.abs(deltaY);
+                    secondaryDiff = Math.abs(deltaX);
+                    break;
+                default:
+                    return;
+            }
+
+            const score = primaryDiff * 1000 + secondaryDiff;
+            if (score < bestScore) {
+                bestScore = score;
+                bestCard = card;
+            }
+        });
+
+        if (bestCard) {
+            return bestCard;
+        }
+
+        const currentIndex = cards.indexOf(currentCard);
+        if (currentIndex === -1) {
+            return null;
+        }
+
+        if (direction === 'left' || direction === 'up') {
+            return cards[currentIndex - 1] || null;
+        }
+
+        if (direction === 'right' || direction === 'down') {
+            return cards[currentIndex + 1] || null;
+        }
+
+        return null;
+    }
+
     function resolveWatchIdentifier(release, payload) {
         if (payload) {
             return payload.alias || payload.id || null;
@@ -227,6 +385,7 @@
                 return;
             }
 
+            const hadCardsBefore = grid ? Boolean(grid.querySelector('[data-anime-card]')) : false;
             const nextPage = currentPage + 1;
             loading = true;
             updateStatus(nextPage === 1 ? 'Загружаем подборку…' : 'Загружаем ещё тайтлы…', { showSpinner: true });
@@ -242,6 +401,10 @@
                     releases.forEach((release) => {
                         grid.appendChild(createAnimeCard(release));
                     });
+
+                    if (!hadCardsBefore && releases.length > 0) {
+                        focusFirstVisibleCard(grid);
+                    }
                 }
 
                 currentPage = nextPage;
@@ -564,6 +727,8 @@
                 moreButton.disabled = true;
             }
 
+            const hadCardsBefore = grid ? Boolean(grid.querySelector('[data-anime-card]')) : false;
+
             try {
                 const { releases, hasNext } = await fetchSearchPage(query, nextPage);
 
@@ -582,6 +747,10 @@
                     releases.forEach((release) => {
                         grid.appendChild(createAnimeCard(release));
                     });
+
+                    if (!hadCardsBefore && releases.length > 0) {
+                        focusFirstVisibleCard(grid);
+                    }
                 }
 
                 currentPage = nextPage;
@@ -668,4 +837,31 @@
         const initialQuery = searchResults.getAttribute('data-search-query') || '';
         initSearch(searchForm, searchResults, initialQuery);
     }
+
+    document.addEventListener('keydown', (event) => {
+        const direction = ARROW_KEY_DIRECTIONS[event.key];
+        if (!direction) {
+            return;
+        }
+
+        const target = event.target instanceof Element ? event.target : null;
+        if (!target) {
+            return;
+        }
+
+        const currentCard = target.closest('[data-anime-card]');
+        if (!currentCard) {
+            return;
+        }
+
+        const nextCard = findCardInDirection(currentCard, direction);
+        if (!nextCard) {
+            return;
+        }
+
+        event.preventDefault();
+        focusCardElement(nextCard);
+    });
+
+    focusFirstVisibleCard();
 })();
