@@ -33,19 +33,7 @@ class AuthController extends Controller
 
         Auth::login($user);
 
-        $deviceHash = DeviceIdentifier::hashForRequest($request);
-
-        DeviceLogin::updateOrCreate(
-            [
-                'device_hash' => $deviceHash,
-                'user_id' => $user->getKey(),
-            ],
-            [
-                'ip_address' => (string) $request->ip(),
-                'user_agent' => mb_substr((string) $request->userAgent(), 0, 512),
-                'last_used_at' => Carbon::now(),
-            ]
-        );
+        $this->storeDeviceLogin($request, $user);
 
         return redirect($redirect);
     }
@@ -166,7 +154,26 @@ class AuthController extends Controller
 
         Auth::login($user);
 
+        $this->storeDeviceLogin($request, $user);
+
         return redirect($redirect !== '' ? $redirect : '/');
+    }
+
+    private function storeDeviceLogin(Request $request, User $user): void
+    {
+        $deviceHash = DeviceIdentifier::hashForRequest($request);
+
+        DeviceLogin::updateOrCreate(
+            [
+                'device_hash' => $deviceHash,
+                'user_id' => $user->getKey(),
+            ],
+            [
+                'ip_address' => (string) $request->ip(),
+                'user_agent' => mb_substr((string) $request->userAgent(), 0, 512),
+                'last_used_at' => Carbon::now(),
+            ]
+        );
     }
 
     protected function storeLoginError(string $message, string $email = ''): void
