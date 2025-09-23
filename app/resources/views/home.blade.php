@@ -17,7 +17,7 @@
             <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
                 <div class="relative flex-1" data-anime-search>
                     <div class="pointer-events-none absolute inset-y-0 start-0 flex items-center ps-3 text-slate-400">
-                        <span class="material-symbols-outlined text-2xl" aria-hidden="true">search</span>
+                        <x-icon name="search" class="h-6 w-6" />
                     </div>
                     <input
                         class="block w-full rounded-lg border border-slate-700 bg-slate-900 py-3 ps-12 pe-4 text-sm text-white placeholder-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500"

@@ -4,9 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'NeAnime')</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
     <script>
         tailwind.config = {
@@ -34,19 +31,19 @@
     <nav class="navbar">
         <div class="nav-links">
             <a href="{{ url('/') }}" class="nav-link">
-                <span class="material-symbols-outlined">search</span>
+                <x-icon name="search" class="h-5 w-5" />
                 <span>Поиск</span>
             </a>
             <a href="{{ url('/list?mode=favorites') }}" class="nav-link">
-                <span class="material-symbols-outlined">favorite</span>
+                <x-icon name="favorite" class="h-5 w-5" />
                 <span>Избранное</span>
             </a>
             <a href="{{ url('/list?mode=top') }}" class="nav-link">
-                <span class="material-symbols-outlined">star</span>
+                <x-icon name="star" class="h-5 w-5" />
                 <span>Лучшее</span>
             </a>
             <a href="{{ url('/list?mode=new') }}" class="nav-link">
-                <span class="material-symbols-outlined">new_releases</span>
+                <x-icon name="sparkles" class="h-5 w-5" />
                 <span>Новинки</span>
             </a>
         </div>
@@ -67,11 +64,11 @@
                                     class="nav-profile__avatar-image"
                                 >
                             @else
-                                <span class="material-symbols-outlined">person</span>
+                                <x-icon name="user" class="h-5 w-5 text-slate-200" />
                             @endif
                         </span>
                         <span class="nav-profile__name">{{ $currentUser->name }}</span>
-                        <span class="material-symbols-outlined text-base text-slate-400">expand_more</span>
+                        <x-icon name="chevron-down" class="h-4 w-4 text-slate-400" />
                     </button>
                     <div
                         id="nav-user-menu"
@@ -87,7 +84,7 @@
                                     class="flex items-center gap-2 rounded-xl px-3 py-2 text-slate-100 transition hover:bg-slate-800"
                                     href="{{ url('/profile') }}"
                                 >
-                                    <span class="material-symbols-outlined text-base text-slate-300">edit</span>
+                                    <x-icon name="pencil-square" class="h-5 w-5 text-slate-300" />
                                     <span>Редактировать</span>
                                 </a>
                             </li>
@@ -96,7 +93,7 @@
                                     class="flex items-center gap-2 rounded-xl px-3 py-2 text-slate-100 transition hover:bg-slate-800"
                                     href="{{ url('/switch-user') }}"
                                 >
-                                    <span class="material-symbols-outlined text-base text-slate-300">group</span>
+                                    <x-icon name="users" class="h-5 w-5 text-slate-300" />
                                     <span>Сменить пользователя</span>
                                 </a>
                             </li>
@@ -107,7 +104,7 @@
                                 class="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left font-semibold text-red-300 transition hover:bg-red-500/10 hover:text-red-200"
                                 data-logout-link
                             >
-                                <span class="material-symbols-outlined text-base">logout</span>
+                                <x-icon name="arrow-right-on-rectangle" class="h-5 w-5" />
                                 <span>Выход</span>
                             </button>
                         </div>
@@ -118,12 +115,15 @@
                     class="nav-button"
                     href="{{ url('/switch-user') . '?redirect=' . urlencode(request()->fullUrl()) }}"
                 >
-                    <span class="material-symbols-outlined">login</span>
+                    <x-icon name="arrow-left-on-rectangle" class="h-5 w-5" />
                     <span>Войти</span>
                 </a>
             @endif
             <button class="nav-button" type="button" data-fullscreen-button>
-                <span class="material-symbols-outlined" data-fullscreen-icon>fullscreen</span>
+                <span class="inline-flex items-center" data-fullscreen-icon>
+                    <x-icon name="arrows-pointing-out" class="h-5 w-5" data-fullscreen-icon-state="enter" />
+                    <x-icon name="arrows-pointing-in" class="hidden h-5 w-5" data-fullscreen-icon-state="exit" />
+                </span>
                 <span data-fullscreen-text>Полный экран</span>
             </button>
         </div>

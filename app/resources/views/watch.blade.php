@@ -85,11 +85,11 @@
                                 aria-pressed="false"
                                 aria-label="Добавить в избранное"
                             >
-                                <span
-                                    class="material-symbols-outlined anime-card__favorite-icon text-base"
+                                <x-icon
+                                    name="favorite"
+                                    class="anime-card__favorite-icon"
                                     data-favorite-icon
-                                    aria-hidden="true"
-                                >favorite</span>
+                                />
                                 <span class="text-sm font-semibold" data-favorite-text>
                                     В избранное
                                 </span>

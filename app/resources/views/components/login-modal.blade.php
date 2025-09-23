@@ -18,7 +18,7 @@
                     data-modal-close
                     aria-label="Закрыть модальное окно"
                 >
-                    <span class="material-symbols-outlined">close</span>
+                    <x-icon name="x-mark" class="h-5 w-5" />
                 </button>
                 <div class="px-6 py-7">
                     <div class="mb-6 space-y-2 text-center">

@@ -16,7 +16,7 @@
                             @if($user->avatar_path)
                                 <img src="{{ url($user->avatar_path) }}" alt="Текущий аватар" class="profile-avatar__image">
                             @else
-                                <span class="material-symbols-outlined">person</span>
+                                <x-icon name="user" class="h-20 w-20 text-slate-300" />
                             @endif
                         </span>
                     </div>
@@ -97,7 +97,7 @@
                             class="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white shadow-lg shadow-blue-900/40 transition hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-900/60"
                             type="submit"
                         >
-                            <span class="material-symbols-outlined text-base">save</span>
+                            <x-icon name="document-check" class="h-5 w-5" />
                             <span>Сохранить изменения</span>
                         </button>
                     </div>
