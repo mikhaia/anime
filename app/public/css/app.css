@@ -367,34 +367,6 @@ main {
     position: relative;
 }
 
-.anime-card__actions {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 1px;
-    background: rgba(148, 163, 184, 0.25);
-    border-radius: inherit;
-    overflow: hidden;
-    opacity: 0;
-    pointer-events: none;
-    z-index: 2;
-}
-
-.anime-card__actions-section {
-    display: flex;
-    flex: 1 1 0;
-    min-width: 0;
-    height: 100%;
-}
-
-.anime-card__actions-section > .anime-card__action {
-    flex: 1 1 auto;
-    height: 100%;
-    width: 100%;
-}
-
 .anime-card__action {
     display: flex;
     align-items: center;
@@ -519,19 +491,6 @@ main {
 .anime-card__favorite-text {
     white-space: normal;
     text-align: center;
-}
-
-.anime-card--actions-visible .anime-card__actions {
-    opacity: 1;
-    pointer-events: auto;
-}
-
-.anime-card--actions-visible .anime-card__overlay {
-    opacity: 0;
-}
-
-.anime-card--actions-visible .anime-card__image {
-    filter: brightness(0.6) saturate(1.05);
 }
 
 .anime-list__more {

@@ -28,7 +28,6 @@
 
     $identifier = $alias ?: ($animeId !== null ? (string) $animeId : null);
     $watchUrl = $identifier ? url('/watch/' . $identifier) : '#';
-    $detailsUrl = url('/details');
 
     $payload = [
         'id' => $animeId,
@@ -46,10 +45,7 @@
     <a
         class="anime-card__link"
         href="{{ $watchUrl }}"
-        data-anime-card-trigger
-        aria-haspopup="true"
-        aria-expanded="false"
-        aria-label="Открыть варианты действий для «{{ $title }}»"
+        aria-label="Смотреть «{{ $title }}»"
     >
         @if($posterUrl)
             <img
@@ -69,28 +65,4 @@
             @endif
         </div>
     </a>
-    <div class="anime-card__actions" data-anime-card-actions aria-hidden="true">
-        <div class="anime-card__actions-section">
-            <a class="anime-card__action anime-card__action--watch" href="{{ $watchUrl }}">Смотреть</a>
-        </div>
-        <div class="anime-card__actions-section">
-            <a class="anime-card__action anime-card__action--details" href="{{ $detailsUrl }}">Описание</a>
-        </div>
-        <div class="anime-card__actions-section">
-            <button
-                class="anime-card__action anime-card__action--favorite anime-card__favorite @if(!empty($isFavorite)) anime-card__favorite--active @endif"
-                type="button"
-                data-favorite-button
-                @if($animeId !== null) data-anime-id="{{ $animeId }}" @endif
-                data-anime-payload='@json($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)'
-                aria-pressed="{{ !empty($isFavorite) ? 'true' : 'false' }}"
-                aria-label="{{ !empty($isFavorite) ? 'Удалить из избранного' : 'Добавить в избранное' }}"
-            >
-                <span class="material-symbols-outlined anime-card__favorite-icon" data-favorite-icon>favorite</span>
-                <span class="anime-card__favorite-text" data-favorite-text>
-                    {{ !empty($isFavorite) ? 'В избранном' : 'В избранное' }}
-                </span>
-            </button>
-        </div>
-    </div>
 </article>
