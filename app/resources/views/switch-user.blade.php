@@ -18,7 +18,7 @@
         <div class="space-y-10">
             @if(!$hasLogins)
                 <div class="flex flex-col items-center justify-center gap-3 rounded-3xl border border-dashed border-slate-700 bg-slate-900/60 px-8 py-16 text-center">
-                    <span class="material-symbols-outlined text-5xl text-blue-400">group</span>
+                    <x-icon name="users" class="h-16 w-16 text-blue-400" />
                     <h2 class="text-2xl font-semibold text-slate-100">На этом устройстве пока не было входов</h2>
                     <p class="max-w-xl text-sm text-slate-300">Как только вы авторизуетесь, здесь появится список пользователей, которые заходили на этот сайт с текущего устройства.</p>
                     <button
@@ -27,7 +27,7 @@
                         data-modal-target="login-modal"
                         data-modal-toggle="login-modal"
                     >
-                        <span class="material-symbols-outlined text-base">login</span>
+                        <x-icon name="arrow-left-on-rectangle" class="h-5 w-5" />
                         Войти в аккаунт
                     </button>
                 </div>
@@ -52,7 +52,7 @@
                                             loading="lazy"
                                         >
                                     @else
-                                        <span class="material-symbols-outlined text-3xl text-slate-300">person</span>
+                                        <x-icon name="user" class="h-12 w-12 text-slate-300" />
                                     @endif
                                 </div>
                                 <h3 class="text-lg font-semibold text-slate-100">{{ $user->name }}</h3>
@@ -69,7 +69,7 @@
                         data-modal-target="login-modal"
                         data-modal-toggle="login-modal"
                     >
-                        <span class="material-symbols-outlined text-4xl">add</span>
+                        <x-icon name="plus" class="h-12 w-12" />
                         Добавить нового пользователя
                     </button>
                 </div>

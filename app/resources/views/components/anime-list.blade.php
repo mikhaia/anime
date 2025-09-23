@@ -50,12 +50,12 @@
             <div class="anime-list__pagination-controls">
                 @if($paginator->onFirstPage())
                     <span class="anime-list__more" aria-disabled="true" tabindex="-1">
-                        <span class="material-symbols-outlined" aria-hidden="true">navigate_before</span>
+                        <x-icon name="chevron-left" class="h-5 w-5" />
                         Назад
                     </span>
                 @else
                     <a class="anime-list__more" href="{{ $paginator->previousPageUrl() }}" rel="prev">
-                        <span class="material-symbols-outlined" aria-hidden="true">navigate_before</span>
+                        <x-icon name="chevron-left" class="h-5 w-5" />
                         Назад
                     </a>
                 @endif
@@ -70,12 +70,12 @@
                 @if($paginator->hasMorePages())
                     <a class="anime-list__more" href="{{ $paginator->nextPageUrl() }}" rel="next">
                         Вперёд
-                        <span class="material-symbols-outlined" aria-hidden="true">navigate_next</span>
+                        <x-icon name="chevron-right" class="h-5 w-5" />
                     </a>
                 @else
                     <span class="anime-list__more" aria-disabled="true" tabindex="-1">
                         Вперёд
-                        <span class="material-symbols-outlined" aria-hidden="true">navigate_next</span>
+                        <x-icon name="chevron-right" class="h-5 w-5" />
                     </span>
                 @endif
             </div>

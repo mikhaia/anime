@@ -103,8 +103,9 @@ a {
     display: block;
 }
 
-.nav-profile__avatar .material-symbols-outlined {
-    font-size: 1.35rem;
+.nav-profile__avatar svg {
+    width: 1.35rem;
+    height: 1.35rem;
     color: rgba(226, 232, 240, 0.8);
 }
 
@@ -122,13 +123,9 @@ a {
     background: rgba(56, 189, 248, 0.12);
 }
 
-.material-symbols-outlined {
-    font-variation-settings:
-        'FILL' 0,
-        'wght' 400,
-        'GRAD' 0,
-        'opsz' 24;
-    font-size: 1.25rem;
+.icon {
+    display: inline-block;
+    flex-shrink: 0;
 }
 
 main {
@@ -202,8 +199,9 @@ main {
     display: block;
 }
 
-.page-profile .profile-avatar .material-symbols-outlined {
-    font-size: 3.5rem;
+.page-profile .profile-avatar svg {
+    width: 5rem;
+    height: 5rem;
     color: rgba(226, 232, 240, 0.75);
 }
 
@@ -466,12 +464,14 @@ main {
 }
 
 .anime-card__favorite-icon {
-    font-size: 1.1rem;
-    font-variation-settings:
-        'FILL' 0,
-        'wght' 500,
-        'GRAD' 0,
-        'opsz' 24;
+    width: 1.15rem;
+    height: 1.15rem;
+    flex-shrink: 0;
+}
+
+.anime-card__favorite-icon path {
+    fill: none;
+    transition: fill 0.2s ease, stroke 0.2s ease;
 }
 
 .anime-card__favorite--active {
@@ -479,13 +479,10 @@ main {
     color: #fecaca;
 }
 
-.anime-card__favorite--active .anime-card__favorite-icon,
-.anime-card__favorite-icon--active {
-    font-variation-settings:
-        'FILL' 1,
-        'wght' 600,
-        'GRAD' 0,
-        'opsz' 24;
+.anime-card__favorite--active .anime-card__favorite-icon path,
+.anime-card__favorite-icon--active path {
+    fill: currentColor;
+    stroke: currentColor;
 }
 
 .anime-card__favorite-text {
