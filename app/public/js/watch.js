@@ -16,8 +16,11 @@
         let isAuthenticated = document.body?.dataset?.authenticated === 'true';
         let lastSavedEpisode = Number.isFinite(initialEpisodeNumber) ? initialEpisodeNumber : null;
         let saveInFlight = null;
-        const qualitySelect = document.querySelector('[data-watch-quality]');
-        let preferredQuality = qualitySelect?.value ?? null;
+        const qualityContainer = document.querySelector('[data-watch-quality]');
+        const initialQualityButton = qualityContainer?.querySelector('[data-quality-option][aria-checked="true"]') || null;
+        let preferredQuality = initialQualityButton?.dataset?.quality ?? null;
+        let qualityButtons = Array.from(qualityContainer?.querySelectorAll('[data-quality-option]') || []);
+        let currentStreamOptions = {};
 
         const navLinks = Array.from(document.querySelectorAll('.navbar .nav-links .nav-link'));
         const navActions = Array.from(document.querySelectorAll('.navbar .nav-actions .nav-button'));
@@ -64,27 +67,171 @@
             return normalized;
         }
 
+        function setQualityContainerDisabled(disabled) {
+            if (!qualityContainer) {
+                return;
+            }
+
+            if (disabled) {
+                qualityContainer.setAttribute('data-disabled', 'true');
+                qualityContainer.setAttribute('aria-disabled', 'true');
+                qualityContainer.disabled = true;
+            } else {
+                qualityContainer.removeAttribute('data-disabled');
+                qualityContainer.removeAttribute('aria-disabled');
+                qualityContainer.disabled = false;
+            }
+        }
+
+        function setQualitySelection(quality) {
+            if (!qualityContainer) {
+                return;
+            }
+
+            qualityButtons.forEach((button) => {
+                const buttonQuality = button?.dataset?.quality || null;
+                const isActive = Boolean(quality && buttonQuality === quality);
+
+                button.classList.toggle('watch-player__quality-button--active', isActive);
+                button.setAttribute('aria-checked', isActive ? 'true' : 'false');
+                button.tabIndex = isActive ? 0 : -1;
+            });
+        }
+
+        function focusQualityControls() {
+            if (!qualityContainer) {
+                return;
+            }
+
+            const enabledButtons = qualityButtons.filter((button) => button && !button.disabled);
+            if (enabledButtons.length === 0) {
+                return;
+            }
+
+            const activeButton = enabledButtons.find((button) => button.classList.contains('watch-player__quality-button--active'))
+                || enabledButtons[0];
+
+            if (activeButton) {
+                focusElement(activeButton, { preventScroll: true });
+            }
+        }
+
+        function selectQuality(quality, { shouldLoad = true, updatePreference = true } = {}) {
+            if (!quality || !currentStreamOptions[quality]) {
+                return;
+            }
+
+            setQualitySelection(quality);
+
+            if (updatePreference) {
+                preferredQuality = quality;
+            }
+
+            if (shouldLoad) {
+                loadStream(currentStreamOptions[quality]);
+            }
+        }
+
+        function moveQualitySelection(offset) {
+            if (!Number.isFinite(offset) || offset === 0) {
+                return null;
+            }
+
+            const enabledButtons = qualityButtons.filter((button) => button && !button.disabled);
+            if (enabledButtons.length === 0) {
+                return null;
+            }
+
+            const currentIndex = enabledButtons.findIndex((button) => button.classList.contains('watch-player__quality-button--active'));
+            const safeIndex = currentIndex >= 0 ? currentIndex : 0;
+            const nextIndex = safeIndex + offset;
+
+            if (nextIndex < 0 || nextIndex >= enabledButtons.length) {
+                return null;
+            }
+
+            const nextButton = enabledButtons[nextIndex];
+            const nextQuality = nextButton?.dataset?.quality || null;
+
+            if (!nextQuality || !currentStreamOptions[nextQuality]) {
+                return null;
+            }
+
+            selectQuality(nextQuality, { shouldLoad: true, updatePreference: true });
+            focusElement(nextButton, { preventScroll: true });
+
+            return nextButton;
+        }
+
+        function handleQualityButtonKeydown(event, button) {
+            if (!button) {
+                return;
+            }
+
+            if (event.key === 'ArrowUp') {
+                event.preventDefault();
+                focusFirstNavItem();
+                return;
+            }
+
+            if (event.key === 'ArrowDown') {
+                event.preventDefault();
+                focusActivePlaylistOrPlayer();
+                return;
+            }
+
+            if (event.key === 'ArrowLeft') {
+                event.preventDefault();
+                const moved = moveQualitySelection(-1);
+                if (!moved) {
+                    const activeItem = getActiveItem();
+                    if (activeItem) {
+                        focusElement(activeItem, { preventScroll: true });
+                    }
+                }
+                return;
+            }
+
+            if (event.key === 'ArrowRight') {
+                event.preventDefault();
+                const moved = moveQualitySelection(1);
+                if (!moved) {
+                    const activeItem = getActiveItem();
+                    if (activeItem) {
+                        focusElement(activeItem, { preventScroll: true });
+                    }
+                }
+                return;
+            }
+
+            if (event.key === 'MediaPlayPause') {
+                event.preventDefault();
+                event.stopPropagation();
+                togglePlayback();
+                return;
+            }
+
+            if (event.key === ' ' || event.key === 'Enter') {
+                event.preventDefault();
+                button.click();
+            }
+        }
+
         function updateQualityOptions(streams, defaultQuality) {
-            if (!qualitySelect) {
+            if (!qualityContainer) {
                 return null;
             }
 
             const normalizedStreams = normalizeStreams(streams);
             const qualities = Object.keys(normalizedStreams);
 
-            qualitySelect.innerHTML = '';
+            currentStreamOptions = normalizedStreams;
+            qualityContainer.innerHTML = '';
+            qualityButtons = [];
 
-            qualities.forEach((quality) => {
-                const option = document.createElement('option');
-                option.value = quality;
-                option.textContent = quality;
-                qualitySelect.append(option);
-            });
-
-            if (qualities.length <= 1) {
-                qualitySelect.disabled = true;
-            } else {
-                qualitySelect.disabled = false;
+            if (qualities.length === 0) {
+                setQualityContainerDisabled(true);
+                return null;
             }
 
             const desiredQuality = (() => {
@@ -99,9 +246,39 @@
                 return qualities[0] ?? null;
             })();
 
-            if (desiredQuality) {
-                qualitySelect.value = desiredQuality;
-            }
+            qualities.forEach((quality) => {
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'watch-player__quality-button';
+                button.textContent = quality;
+                button.dataset.quality = quality;
+                button.setAttribute('data-quality-option', '');
+                button.setAttribute('role', 'radio');
+                button.setAttribute('aria-checked', 'false');
+                button.tabIndex = -1;
+
+                if (qualities.length <= 1) {
+                    button.disabled = true;
+                }
+
+                button.addEventListener('click', () => {
+                    if (!currentStreamOptions[quality]) {
+                        return;
+                    }
+
+                    selectQuality(quality, { shouldLoad: true, updatePreference: true });
+                });
+
+                button.addEventListener('keydown', (event) => {
+                    handleQualityButtonKeydown(event, button);
+                });
+
+                qualityContainer.append(button);
+                qualityButtons.push(button);
+            });
+
+            setQualityContainerDisabled(qualities.length <= 1);
+            setQualitySelection(desiredQuality);
 
             return desiredQuality ? normalizedStreams[desiredQuality] : null;
         }
@@ -334,12 +511,26 @@
             }
         }
 
+        const qualityControls = {
+            container: qualityContainer,
+            focus: focusQualityControls,
+            isDisabled: () => {
+                if (!qualityContainer) {
+                    return true;
+                }
+
+                return qualityButtons.every((button) => !button || button.disabled);
+            },
+            getActiveButton: () => qualityButtons.find((button) => button.classList.contains('watch-player__quality-button--active')) || null,
+        };
+
         const controlContext = {
             player,
             playlistItems,
             navLinks,
             navActions,
-            qualitySelect,
+            qualitySelect: qualityContainer,
+            qualityControls,
             setActive,
             getActiveItem,
             focusElement,
@@ -364,35 +555,6 @@
             });
 
         });
-
-        if (qualitySelect) {
-            qualitySelect.addEventListener('change', () => {
-                const currentItem = getActiveItem();
-                preferredQuality = qualitySelect.value || null;
-
-                if (!currentItem) {
-                    return;
-                }
-
-                const { episodeStreams } = currentItem.dataset;
-                if (!episodeStreams) {
-                    return;
-                }
-
-                try {
-                    const parsed = JSON.parse(episodeStreams);
-                    const normalized = normalizeStreams(parsed);
-                    const selectedQuality = qualitySelect.value;
-                    const streamUrl = normalized[selectedQuality];
-
-                    if (streamUrl) {
-                        loadStream(streamUrl);
-                    }
-                } catch (error) {
-                    console.warn('Failed to switch quality', error);
-                }
-            });
-        }
 
         const activeItem = playlistItems.find((item) => item.dataset.active === 'true') || playlistItems[0] || null;
         if (activeItem) {

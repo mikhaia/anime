@@ -40,28 +40,40 @@
                         </h2>
                         <div class="watch-player__controls">
                             <div class="watch-player__quality">
-                                <div class="watch-player__quality-select-wrapper">
-                                    <select
-                                        id="watch-quality-select"
-                                        class="watch-player__quality-select"
-                                        data-watch-quality
-                                        aria-label="Выберите качество воспроизведения"
-                                        @if(count($activeEpisode['streams'] ?? []) <= 1) disabled @endif
-                                    >
-                                        @foreach($activeEpisode['streams'] ?? [] as $quality => $url)
-                                            <option
-                                                value="{{ $quality }}"
-                                                @if(($activeEpisode['default_quality'] ?? null) === $quality) selected @endif
-                                            >
-                                                {{ $quality }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                    <span class="watch-player__quality-select-icon" aria-hidden="true">
-                                        <svg class="watch-player__quality-select-icon-svg" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
-                                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m6 8 4 4 4-4" />
-                                        </svg>
-                                    </span>
+                                @php
+                                    $activeStreams = $activeEpisode['streams'] ?? [];
+                                    $defaultQuality = $activeEpisode['default_quality'] ?? null;
+                                    $streamsCount = count($activeStreams);
+                                @endphp
+                                <div
+                                    class="watch-player__quality-buttons"
+                                    data-watch-quality
+                                    role="radiogroup"
+                                    aria-label="Выберите качество воспроизведения"
+                                    @if($streamsCount <= 1) aria-disabled="true" data-disabled="true" @endif
+                                >
+                                    @foreach($activeStreams as $quality => $url)
+                                        @php
+                                            $isDefaultQuality = $defaultQuality ? $defaultQuality === $quality : $loop->first;
+                                        @endphp
+                                        <button
+                                            type="button"
+                                            class="watch-player__quality-button @if($isDefaultQuality) watch-player__quality-button--active @endif"
+                                            data-quality-option
+                                            data-quality="{{ $quality }}"
+                                            role="radio"
+                                            @if($streamsCount <= 1) disabled @endif
+                                            @if($isDefaultQuality)
+                                                aria-checked="true"
+                                                tabindex="0"
+                                            @else
+                                                aria-checked="false"
+                                                tabindex="-1"
+                                            @endif
+                                        >
+                                            {{ $quality }}
+                                        </button>
+                                    @endforeach
                                 </div>
                             </div>
                             <button
