@@ -259,7 +259,7 @@
             playlistItems,
             navLinks,
             navActions,
-            qualitySelect,
+            qualityControls,
             setActive,
             getActiveItem,
             focusElement,
@@ -361,9 +361,18 @@
                         break;
                     }
                     case 'ArrowRight': {
-                        if (qualitySelect && !qualitySelect.disabled) {
+                        const isDisabled = typeof qualityControls?.isDisabled === 'function'
+                            ? qualityControls.isDisabled()
+                            : true;
+
+                        if (!isDisabled) {
                             event.preventDefault();
-                            focusElement(qualitySelect);
+
+                            if (typeof qualityControls.focus === 'function') {
+                                qualityControls.focus();
+                            } else if (qualityControls?.container) {
+                                focusElement(qualityControls.container);
+                            }
                         }
                         break;
                     }
@@ -427,25 +436,6 @@
                 }
             }
         });
-
-        if (qualitySelect) {
-            qualitySelect.addEventListener('keydown', (event) => {
-                if (event.key === 'ArrowUp') {
-                    event.preventDefault();
-                    focusFirstNavItem();
-                } else if (event.key === 'ArrowLeft') {
-                    const activeItem = getActiveItem();
-                    if (activeItem) {
-                        event.preventDefault();
-                        focusElement(activeItem);
-                    }
-                } else if (event.key === 'MediaPlayPause') {
-                    event.preventDefault();
-                    event.stopPropagation();
-                    togglePlayback();
-                }
-            });
-        }
 
         navLinks.forEach((link, index) => {
             link.addEventListener('keydown', (event) => {
