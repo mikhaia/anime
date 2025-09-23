@@ -3,6 +3,17 @@
 @php
     /** @var \App\Models\Anime $anime */
     $activeEpisode = $activeEpisode ?? ($episodes[0] ?? null);
+    $englishTitle = is_string($anime->title_english) ? trim($anime->title_english) : '';
+    $favoritePayload = [
+        'id' => (int) $anime->getKey(),
+        'title' => $anime->title,
+        'title_english' => $englishTitle !== '' ? $englishTitle : null,
+        'poster' => $anime->poster_url,
+        'type' => $anime->type,
+        'year' => $anime->year,
+        'episodes' => $anime->episodes_total,
+        'alias' => $anime->alias,
+    ];
 @endphp
 
 @section('title', 'NeAnime · Просмотр — ' . ($anime->title ?? 'Аниме'))
@@ -10,7 +21,6 @@
 @section('content')
     <header class="page-header">
         <h1 class="page-title">{{ $anime->title }}</h1>
-        @php $englishTitle = is_string($anime->title_english) ? trim($anime->title_english) : ''; @endphp
         @if($englishTitle !== '' && $englishTitle !== $anime->title)
             <p class="page-subtitle">{{ $englishTitle }}</p>
         @endif
@@ -54,6 +64,24 @@
                                     </span>
                                 </div>
                             </div>
+                            <button
+                                type="button"
+                                class="inline-flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-800 px-4 py-2 text-sm font-semibold text-slate-100 transition-colors duration-150 hover:bg-slate-700 focus:outline-none focus:ring-4 focus:ring-slate-500/40 disabled:cursor-not-allowed disabled:opacity-60"
+                                data-favorite-button
+                                data-anime-id="{{ $anime->getKey() }}"
+                                data-anime-payload='@json($favoritePayload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)'
+                                aria-pressed="false"
+                                aria-label="Добавить в избранное"
+                            >
+                                <span
+                                    class="material-symbols-outlined anime-card__favorite-icon text-base"
+                                    data-favorite-icon
+                                    aria-hidden="true"
+                                >favorite</span>
+                                <span class="text-sm font-semibold" data-favorite-text>
+                                    В избранное
+                                </span>
+                            </button>
                         </div>
                     </div>
                     <div class="watch-player__video-wrapper">
