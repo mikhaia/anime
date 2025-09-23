@@ -67,3 +67,7 @@
     </section>
 @endsection
 
+@push('scripts')
+    <script src="/js/control-list.js" defer></script>
+@endpush
+
