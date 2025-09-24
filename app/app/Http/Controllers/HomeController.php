@@ -15,9 +15,32 @@ class HomeController extends Controller
     public function index(Request $request): string
     {
         $searchQuery = trim((string) $request->input('search', ''));
+        $recentWatchProgress = collect();
+        $recentFavorites = collect();
+
+        $user = Auth::user();
+        if ($user) {
+            $recentWatchProgress = $user->watchProgress()
+                ->with('anime')
+                ->orderByDesc('updated_at')
+                ->limit(3)
+                ->get()
+                ->filter(static fn ($progress) => $progress->anime !== null)
+                ->values();
+
+            $recentFavorites = $user->favorites()
+                ->with('anime')
+                ->orderByDesc('created_at')
+                ->limit(3)
+                ->get()
+                ->filter(static fn ($favorite) => $favorite->anime !== null)
+                ->values();
+        }
 
         return view('home', [
             'searchQuery' => $searchQuery,
+            'recentWatchProgress' => $recentWatchProgress,
+            'recentFavorites' => $recentFavorites,
         ])->render();
     }
 
