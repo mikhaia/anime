@@ -47,4 +47,106 @@
             <input type="hidden" name="mode" value="search">
         </form>
     </section>
+    <section class="page-content page-content--wide">
+        <div class="grid gap-6 lg:grid-cols-2">
+            <div class="space-y-5 rounded-3xl border border-slate-800 bg-slate-900/70 p-6 shadow-xl">
+                <div>
+                    <h2 class="text-lg font-semibold text-slate-100">Недавно смотрели</h2>
+                    <p class="text-sm text-slate-400">Тайтлы, которые вы открывали последними.</p>
+                </div>
+                <div class="space-y-4">
+                    @if(!$currentUser)
+                        <p class="text-sm text-slate-400">Войдите, чтобы видеть историю просмотров.</p>
+                    @else
+                        @forelse($recentWatchProgress as $progress)
+                            @php
+                                $anime = $progress->anime;
+                                $identifier = $anime?->alias ?: ($anime?->getKey());
+                            @endphp
+                            @if($anime && $identifier)
+                                <a
+                                    class="flex gap-4 rounded-2xl border border-slate-800 bg-slate-900/70 p-4 transition hover:border-blue-500/60 hover:bg-slate-900"
+                                    href="{{ url('/watch/' . $identifier) }}"
+                                >
+                                    <div class="flex h-24 w-16 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-slate-800">
+                                        @if($anime->poster_url)
+                                            <img
+                                                class="h-full w-full object-cover"
+                                                src="{{ $anime->poster_url }}"
+                                                alt="Постер аниме «{{ $anime->title }}»"
+                                                loading="lazy"
+                                                decoding="async"
+                                            >
+                                        @else
+                                            <span class="px-2 text-center text-xs text-slate-400">Нет постера</span>
+                                        @endif
+                                    </div>
+                                    <div class="flex min-w-0 flex-1 flex-col justify-center gap-1">
+                                        <h3 class="truncate text-sm font-semibold text-slate-100">{{ $anime->title }}</h3>
+                                        <p class="text-xs text-slate-400">Последний просмотренный эпизод: {{ $progress->episode_number }}</p>
+                                        @if($progress->updated_at)
+                                            <p class="text-xs text-slate-500">Обновлено {{ $progress->updated_at->format('d.m.Y H:i') }}</p>
+                                        @endif
+                                    </div>
+                                </a>
+                            @endif
+                        @empty
+                            <p class="text-sm text-slate-400">Здесь появятся тайтлы, которые вы начнёте смотреть.</p>
+                        @endforelse
+                    @endif
+                </div>
+            </div>
+            <div class="space-y-5 rounded-3xl border border-slate-800 bg-slate-900/70 p-6 shadow-xl">
+                <div>
+                    <h2 class="text-lg font-semibold text-slate-100">Недавно в избранном</h2>
+                    <p class="text-sm text-slate-400">Тайтлы, которые вы добавили в избранное последними.</p>
+                </div>
+                <div class="space-y-4">
+                    @if(!$currentUser)
+                        <p class="text-sm text-slate-400">Войдите, чтобы управлять избранным.</p>
+                    @else
+                        @forelse($recentFavorites as $favorite)
+                            @php
+                                $anime = $favorite->anime;
+                                $identifier = $anime?->alias ?: ($anime?->getKey());
+                            @endphp
+                            @if($anime && $identifier)
+                                <a
+                                    class="flex gap-4 rounded-2xl border border-slate-800 bg-slate-900/70 p-4 transition hover:border-blue-500/60 hover:bg-slate-900"
+                                    href="{{ url('/watch/' . $identifier) }}"
+                                >
+                                    <div class="flex h-24 w-16 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-slate-800">
+                                        @if($anime->poster_url)
+                                            <img
+                                                class="h-full w-full object-cover"
+                                                src="{{ $anime->poster_url }}"
+                                                alt="Постер аниме «{{ $anime->title }}»"
+                                                loading="lazy"
+                                                decoding="async"
+                                            >
+                                        @else
+                                            <span class="px-2 text-center text-xs text-slate-400">Нет постера</span>
+                                        @endif
+                                    </div>
+                                    <div class="flex min-w-0 flex-1 flex-col justify-center gap-1">
+                                        <h3 class="truncate text-sm font-semibold text-slate-100">{{ $anime->title }}</h3>
+                                        @if($anime->year || $anime->type)
+                                            <p class="text-xs text-slate-400">
+                                                {{ implode(' • ', array_filter([$anime->type, $anime->year])) }}
+                                            </p>
+                                        @endif
+                                        @if($favorite->created_at)
+                                            <p class="text-xs text-slate-500">Добавлено {{ $favorite->created_at->format('d.m.Y H:i') }}</p>
+                                        @endif
+                                    </div>
+                                </a>
+                            @endif
+                        @empty
+                            <p class="text-sm text-slate-400">Добавляйте тайтлы в избранное, и они появятся здесь.</p>
+                        @endforelse
+                    @endif
+                </div>
+            </div>
+        </div>
+    </section>
 @endsection
