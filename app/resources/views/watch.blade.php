@@ -185,7 +185,7 @@
                                     class="watch-playlist__item @if($episode['number'] === $activeEpisode['number']) watch-playlist__item--active @endif"
                                     data-episode-item
                                     data-episode-number="{{ $episode['number'] }}"
-                                    data-episode-title="{{ e(sprintf('%02d. %s', $episode['number'], $episode['title'])) }}"
+                                    data-episode-title="{{ $episode['title'] }}"
                                     data-episode-duration="{{ e($episode['duration']) }}"
                                     data-episode-description="{{ e($episode['description']) }}"
                                     data-episode-stream="{{ e($episode['stream_url']) }}"
@@ -196,7 +196,7 @@
                                     <span class="watch-playlist__number">{{ sprintf('%02d', $episode['number']) }}</span>
                                     <span class="watch-playlist__content">
                                         <span class="watch-playlist__item-title">
-                                            {{ sprintf('%02d. %s', $episode['number'], $episode['title']) }}
+                                            {{ $episode['title'] }}
                                         </span>
                                         <span class="watch-playlist__meta">{{ $episode['duration'] }}</span>
                                     </span>

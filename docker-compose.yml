@@ -38,7 +38,7 @@ services:
       PMA_PASSWORD: root
       UPLOAD_LIMIT: 256M
     ports:
-      - "8081:80"           # http://localhost:8081
+      - "8085:80"           # http://localhost:8085
 
 volumes:
   db_data:

@@ -47,8 +47,9 @@
             <input type="hidden" name="mode" value="search">
         </form>
     </section>
-    <section class="page-content page-content--wide">
-        <div class="grid gap-6 lg:grid-cols-2">
+    
+    <section class="page-content--wide m-auto mt-5">
+        <div class="grid gap-4 lg:grid-cols-2">
             <div class="space-y-5 rounded-3xl border border-slate-800 bg-slate-900/70 p-6 shadow-xl">
                 <div>
                     <h2 class="text-lg font-semibold text-slate-100">Недавно смотрели</h2>

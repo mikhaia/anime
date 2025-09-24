@@ -119,13 +119,13 @@
                     <span>Войти</span>
                 </a>
             @endif
-            <button class="nav-button" type="button" data-fullscreen-button>
+            {{-- <button class="nav-button" type="button" data-fullscreen-button>
                 <span class="inline-flex items-center" data-fullscreen-icon>
                     <x-icon name="arrows-pointing-out" class="h-5 w-5" data-fullscreen-icon-state="enter" />
                     <x-icon name="arrows-pointing-in" class="hidden h-5 w-5" data-fullscreen-icon-state="exit" />
                 </span>
                 <span data-fullscreen-text>Полный экран</span>
-            </button>
+            </button> --}}
         </div>
     </nav>
     @include('components.login-modal')
