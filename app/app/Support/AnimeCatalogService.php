@@ -112,7 +112,9 @@ class AnimeCatalogService
         ];
     }
 
-    public function buildCatalogPaginator(array $result, Request $request, int $fallbackPerPage = 20): Paginator
+    private const DEFAULT_PER_PAGE = 15;
+
+    public function buildCatalogPaginator(array $result, Request $request, int $fallbackPerPage = self::DEFAULT_PER_PAGE): Paginator
     {
         $items = $result['items'] instanceof Collection ? $result['items'] : collect($result['items']);
         $count = $items->count();
@@ -140,7 +142,7 @@ class AnimeCatalogService
         );
     }
 
-    public function searchLocal(string $query, int $page = 1, int $perPage = 24): LengthAwarePaginator
+    public function searchLocal(string $query, int $page = 1, int $perPage = self::DEFAULT_PER_PAGE): LengthAwarePaginator
     {
         $page = max(1, $page);
         $perPage = max(1, $perPage);

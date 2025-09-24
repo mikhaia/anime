@@ -9,6 +9,7 @@ class AnilibriaClient
     private const API_BASE_URL = 'https://anilibria.top/api/v1/anime';
     private const BASE_URL = 'https://anilibria.top';
     private const CATALOG_ENDPOINT = '/catalog/releases';
+    private const CATALOG_PER_PAGE = 15;
     private const RELEASE_ENDPOINT = '/releases';
     private const FRANCHISE_RELEASE_ENDPOINT = '/franchises/release';
 
@@ -77,6 +78,7 @@ class AnilibriaClient
         $payload = $this->makeRequest($url, [
             'f[sorting]' => $sorting,
             'page' => max(1, $page),
+            'per_page' => self::CATALOG_PER_PAGE,
         ]);
 
         if (!is_array($payload)) {
