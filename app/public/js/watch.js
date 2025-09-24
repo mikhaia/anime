@@ -24,6 +24,8 @@
 
         const navLinks = Array.from(document.querySelectorAll('.navbar .nav-links .nav-link'));
         const navActions = Array.from(document.querySelectorAll('.navbar .nav-actions .nav-button'));
+        const previousEpisodeButton = document.querySelector('[data-episode-previous]');
+        const nextEpisodeButton = document.querySelector('[data-episode-next]');
 
         if (!player || playlistItems.length === 0) {
             return;
@@ -385,6 +387,8 @@
                 entry.classList.toggle('watch-playlist__item--active', entry === item);
             });
 
+            updateEpisodeNavigationButtons();
+
             const {
                 episodeTitle,
                 episodeDescription,
@@ -467,6 +471,32 @@
 
             if (player) {
                 focusElement(player, { preventScroll: true });
+            }
+        }
+
+        function updateEpisodeNavigationButtons() {
+            const activeIndex = playlistItems.findIndex((entry) => entry.classList.contains('watch-playlist__item--active'));
+            const hasEpisodes = playlistItems.length > 0 && activeIndex >= 0;
+            const lastIndex = playlistItems.length - 1;
+
+            if (previousEpisodeButton) {
+                const shouldDisable = !hasEpisodes || activeIndex <= 0;
+                previousEpisodeButton.disabled = shouldDisable;
+                if (shouldDisable) {
+                    previousEpisodeButton.setAttribute('aria-disabled', 'true');
+                } else {
+                    previousEpisodeButton.removeAttribute('aria-disabled');
+                }
+            }
+
+            if (nextEpisodeButton) {
+                const shouldDisable = !hasEpisodes || activeIndex >= lastIndex;
+                nextEpisodeButton.disabled = shouldDisable;
+                if (shouldDisable) {
+                    nextEpisodeButton.setAttribute('aria-disabled', 'true');
+                } else {
+                    nextEpisodeButton.removeAttribute('aria-disabled');
+                }
             }
         }
 
@@ -556,12 +586,26 @@
 
         });
 
+        if (previousEpisodeButton) {
+            previousEpisodeButton.addEventListener('click', () => {
+                activateItemByOffset(-1);
+            });
+        }
+
+        if (nextEpisodeButton) {
+            nextEpisodeButton.addEventListener('click', () => {
+                activateItemByOffset(1);
+            });
+        }
+
         const activeItem = playlistItems.find((item) => item.dataset.active === 'true') || playlistItems[0] || null;
         if (activeItem) {
             setActive(activeItem);
             if (document.activeElement === document.body || document.activeElement === null) {
                 focusElement(activeItem, { preventScroll: true, ensureVisible: false });
             }
+        } else {
+            updateEpisodeNavigationButtons();
         }
     }
 
