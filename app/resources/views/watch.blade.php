@@ -76,24 +76,56 @@
                                     @endforeach
                                 </div>
                             </div>
-                            <button
-                                type="button"
-                                class="inline-flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-800 px-4 py-2 text-sm font-semibold text-slate-100 transition-colors duration-150 hover:bg-slate-700 focus:outline-none focus:ring-4 focus:ring-slate-500/40 disabled:cursor-not-allowed disabled:opacity-60"
-                                data-favorite-button
-                                data-anime-id="{{ $anime->getKey() }}"
-                                data-anime-payload='@json($favoritePayload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)'
-                                aria-pressed="false"
-                                aria-label="Добавить в избранное"
-                            >
-                                <x-icon
-                                    name="favorite"
-                                    class="anime-card__favorite-icon"
-                                    data-favorite-icon
-                                />
-                                <span class="text-sm font-semibold" data-favorite-text>
-                                    В избранное
-                                </span>
-                            </button>
+                            <div class="watch-player__actions">
+                                <div
+                                    class="watch-player__navigation"
+                                    role="group"
+                                    aria-label="Переключение между сериями"
+                                >
+                                    <button
+                                        type="button"
+                                        class="watch-player__nav-button"
+                                        data-episode-previous
+                                        aria-label="Предыдущая серия"
+                                    >
+                                        <x-icon
+                                            name="chevron-left"
+                                            class="watch-player__nav-icon"
+                                        />
+                                        <span>Предыдущая</span>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        class="watch-player__nav-button watch-player__nav-button--primary"
+                                        data-episode-next
+                                        aria-label="Следующая серия"
+                                    >
+                                        <span>Следующая</span>
+                                        <x-icon
+                                            name="chevron-right"
+                                            class="watch-player__nav-icon"
+                                        />
+                                    </button>
+                                </div>
+                                <button
+                                    type="button"
+                                    class="inline-flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-800 px-4 py-2 text-sm font-semibold text-slate-100 transition-colors duration-150 hover:bg-slate-700 focus:outline-none focus:ring-4 focus:ring-slate-500/40 disabled:cursor-not-allowed disabled:opacity-60"
+                                    data-favorite-button
+                                    data-anime-id="{{ $anime->getKey() }}"
+                                    data-anime-payload='@json($favoritePayload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)'
+                                    aria-pressed="false"
+                                    aria-label="Добавить в избранное"
+                                >
+                                    <x-icon
+                                        name="favorite"
+                                        class="anime-card__favorite-icon"
+                                        data-favorite-icon
+                                    />
+                                    <span class="text-sm font-semibold" data-favorite-text>
+                                        В избранное
+                                    </span>
+                                </button>
+                            </div>
                         </div>
                     </div>
                     <div class="watch-player__video-wrapper">
