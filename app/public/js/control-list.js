@@ -42,14 +42,6 @@
                 element.focus();
             }
         }
-
-        if (typeof element.scrollIntoView === 'function') {
-            try {
-                element.scrollIntoView({ block: 'nearest', inline: 'nearest' });
-            } catch (error) {
-                element.scrollIntoView();
-            }
-        }
     }
 
     function findListWithItems() {
