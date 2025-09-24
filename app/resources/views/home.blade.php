@@ -69,7 +69,7 @@
                                     class="flex gap-4 rounded-2xl border border-slate-800 bg-slate-900/70 p-4 transition hover:border-blue-500/60 hover:bg-slate-900"
                                     href="{{ url('/watch/' . $identifier) }}"
                                 >
-                                    <div class="flex h-24 w-16 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-slate-800">
+                                    <div class="flex h-48 w-32 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-slate-800">
                                         @if($anime->poster_url)
                                             <img
                                                 class="h-full w-full object-cover"
@@ -116,7 +116,7 @@
                                     class="flex gap-4 rounded-2xl border border-slate-800 bg-slate-900/70 p-4 transition hover:border-blue-500/60 hover:bg-slate-900"
                                     href="{{ url('/watch/' . $identifier) }}"
                                 >
-                                    <div class="flex h-24 w-16 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-slate-800">
+                                    <div class="flex h-48 w-32 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-slate-800">
                                         @if($anime->poster_url)
                                             <img
                                                 class="h-full w-full object-cover"
