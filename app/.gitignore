@@ -6,3 +6,5 @@ Homestead.yaml
 .env.testing
 database/database.sqlite
 .phpunit.result.cache
+/node_modules
+/public/css/tailwind.css

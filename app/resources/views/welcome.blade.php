@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>{{ $title ?? 'NeAnime' }}</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/css/tailwind.css">
   </head>
   <body class="min-h-screen bg-slate-950 text-slate-100 flex flex-col items-center justify-center p-6">
     <main class="w-full max-w-3xl text-center space-y-6">
