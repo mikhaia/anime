@@ -628,6 +628,31 @@ main {
     max-width: 24rem;
 }
 
+@media (min-width: 768px) {
+    .watch-player__controls {
+        flex-wrap: nowrap;
+        align-items: flex-start;
+        gap: 1.5rem;
+    }
+
+    .watch-player__quality {
+        flex: 0 0 auto;
+        width: auto;
+        max-width: none;
+    }
+
+    .watch-player__actions {
+        flex-wrap: nowrap;
+        justify-content: flex-start;
+        width: auto;
+        max-width: none;
+    }
+
+    .watch-player__navigation {
+        flex-wrap: nowrap;
+    }
+}
+
 .watch-player__navigation {
     display: inline-flex;
     flex-wrap: wrap;
