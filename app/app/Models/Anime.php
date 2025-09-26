@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Anime extends Model
 {
@@ -33,6 +34,11 @@ class Anime extends Model
     public function watchProgress(): HasMany
     {
         return $this->hasMany(WatchProgress::class);
+    }
+
+    public function releaseCache(): HasOne
+    {
+        return $this->hasOne(AnimeReleaseCache::class);
     }
 
     public function getPosterUrlAttribute($value): ?string

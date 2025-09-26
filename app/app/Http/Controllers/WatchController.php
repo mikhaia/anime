@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Anime;
+use App\Models\AnimeReleaseCache;
 use App\Models\WatchProgress;
 use App\Support\AnilibriaClient;
 use App\Support\Auth;
@@ -23,89 +24,24 @@ class WatchController extends Controller
         /** @var AnilibriaClient $client */
         $client = app(AnilibriaClient::class);
 
-        $releaseIdentifier = $identifier;
-        if ($anime) {
-            $releaseIdentifier = $anime->alias ?: (string) $anime->getKey();
-        }
+        $cache = $anime ? AnimeReleaseCache::query()->find($anime->getKey()) : null;
 
-        $release = $client->fetchRelease($releaseIdentifier, true);
+        $shouldFetchRelease = !$anime || !$this->hasValidCachedEpisodes($cache);
 
-        if (!$release && $anime) {
-            $release = $client->fetchRelease((string) $anime->getKey(), true);
-        }
+        if ($shouldFetchRelease) {
+            $release = $this->fetchReleaseForAnime($client, $identifier, $anime);
 
-        if ($release) {
-            $anime = $this->persistAnimeRelease($release);
+            if ($release) {
+                $anime = $this->persistAnimeRelease($release);
+                $cache = $this->persistReleaseCache($anime, $release);
+            }
         }
 
         if (!$anime) {
             abort(404);
         }
 
-        $formatDuration = static function (?int $seconds): string {
-            if ($seconds === null || $seconds <= 0) {
-                return '—';
-            }
-
-            $minutes = (int) round($seconds / 60);
-            $minutes = max($minutes, 1);
-
-            return sprintf('%d мин.', $minutes);
-        };
-
-        $episodes = [];
-        $seasons = [];
-
-        if ($release && !empty($release['episodes'])) {
-            foreach ($release['episodes'] as $episode) {
-                $streams = [];
-                foreach (($episode['streams'] ?? []) as $quality => $url) {
-                    if (is_string($quality) && is_string($url) && $quality !== '' && $url !== '') {
-                        $streams[$quality] = $url;
-                    }
-                }
-
-                if (empty($streams)) {
-                    continue;
-                }
-
-                $defaultQuality = $episode['default_quality'] ?? null;
-                $defaultStream = null;
-
-                if (is_string($defaultQuality) && isset($streams[$defaultQuality])) {
-                    $defaultStream = $streams[$defaultQuality];
-                } else {
-                    $firstQuality = array_key_first($streams);
-                    if ($firstQuality !== null) {
-                        $defaultStream = $streams[$firstQuality];
-                        $defaultQuality = $firstQuality;
-                    }
-                }
-
-                if ($defaultStream === null) {
-                    continue;
-                }
-
-                $episodeNumber = (int) ($episode['number'] ?? 0);
-                if ($episodeNumber <= 0) {
-                    continue;
-                }
-
-                $episodeTitle = (string) ($episode['title'] ?? sprintf('Серия %02d', $episodeNumber));
-
-                $episodes[] = [
-                    'number' => $episodeNumber,
-                    'title' => $episodeTitle,
-                    'description' => '',
-                    'duration' => $formatDuration($episode['duration_seconds'] ?? null),
-                    'stream_url' => $defaultStream,
-                    'streams' => $streams,
-                    'default_quality' => $defaultQuality,
-                ];
-            }
-
-            usort($episodes, static fn (array $left, array $right) => $left['number'] <=> $right['number']);
-        }
+        $episodes = $this->prepareEpisodesForView($cache?->episodes ?? []);
 
         if (empty($episodes)) {
             $episodesTotal = (int) ($anime->episodes_total ?? 0);
@@ -147,26 +83,339 @@ class WatchController extends Controller
             }
         }
 
-        $currentReleaseId = (int) $anime->getKey();
-        $potentialIdentifiers = array_values(array_filter([
-            is_string($anime->alias ?? null) && trim($anime->alias) !== '' ? $anime->alias : null,
-            $currentReleaseId > 0 ? (string) $currentReleaseId : null,
-        ], static fn ($value) => is_string($value) && $value !== ''));
+        $seasons = $this->prepareSeasonsForView($anime, $cache?->related ?? []);
 
-        $relatedSeasons = [];
-        if (is_array($release) && !empty($release['related']) && is_array($release['related'])) {
-            $relatedSeasons = $release['related'];
+        return view('watch', [
+            'anime' => $anime,
+            'episodes' => $episodes,
+            'activeEpisode' => $activeEpisode,
+            'seasons' => $seasons,
+        ])->render();
+    }
+
+    private function fetchReleaseForAnime(AnilibriaClient $client, string $requestedIdentifier, ?Anime $anime): ?array
+    {
+        foreach ($this->buildReleaseIdentifierCandidates($requestedIdentifier, $anime) as $candidate) {
+            $release = $client->fetchRelease($candidate, true);
+            if ($release) {
+                return $release;
+            }
         }
 
-        $seasonsById = [];
+        return null;
+    }
 
-        foreach ($relatedSeasons as $relatedSeason) {
-            $releaseId = isset($relatedSeason['id']) ? (int) $relatedSeason['id'] : null;
-            if (!$releaseId || $releaseId <= 0) {
+    private function persistReleaseCache(Anime $anime, array $release): AnimeReleaseCache
+    {
+        $cache = AnimeReleaseCache::query()->firstOrNew(['anime_id' => $anime->getKey()]);
+
+        $cache->anime_id = (int) $anime->getKey();
+        $cache->episodes = $this->normalizeEpisodesForStorage($release['episodes'] ?? []);
+        $cache->related = $this->normalizeRelatedForStorage($release['related'] ?? []);
+        $cache->save();
+
+        return $cache;
+    }
+
+    private function hasValidCachedEpisodes(?AnimeReleaseCache $cache): bool
+    {
+        if (!$cache) {
+            return false;
+        }
+
+        $episodes = $cache->episodes ?? [];
+        if (!is_array($episodes) || empty($episodes)) {
+            return false;
+        }
+
+        foreach ($episodes as $episode) {
+            if (!is_array($episode)) {
                 continue;
             }
 
-            if ($releaseId === $currentReleaseId) {
+            if (!empty($episode['streams']) && is_array($episode['streams'])) {
+                foreach ($episode['streams'] as $quality => $url) {
+                    if (is_string($quality) && is_string($url) && $quality !== '' && $url !== '') {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private function buildReleaseIdentifierCandidates(string $requestedIdentifier, ?Anime $anime): array
+    {
+        $candidates = [];
+
+        if ($anime) {
+            $alias = is_string($anime->alias ?? null) ? trim($anime->alias) : '';
+            if ($alias !== '') {
+                $candidates[] = $alias;
+            }
+
+            $id = (int) $anime->getKey();
+            if ($id > 0) {
+                $candidates[] = (string) $id;
+            }
+        }
+
+        $requested = trim($requestedIdentifier);
+        if ($requested !== '') {
+            $candidates[] = $requested;
+        }
+
+        $uniqueCandidates = [];
+        foreach ($candidates as $candidate) {
+            if (!in_array($candidate, $uniqueCandidates, true)) {
+                $uniqueCandidates[] = $candidate;
+            }
+        }
+
+        return $uniqueCandidates;
+    }
+
+    private function normalizeEpisodesForStorage(array $episodes): array
+    {
+        $normalized = [];
+
+        foreach ($episodes as $episode) {
+            if (!is_array($episode)) {
+                continue;
+            }
+
+            $number = isset($episode['number']) ? (int) $episode['number'] : null;
+            if ($number === null || $number <= 0) {
+                continue;
+            }
+
+            $streams = [];
+            if (!empty($episode['streams']) && is_array($episode['streams'])) {
+                foreach ($episode['streams'] as $quality => $url) {
+                    if (!is_string($quality) || !is_string($url)) {
+                        continue;
+                    }
+
+                    $qualityLabel = trim($quality);
+                    $streamUrl = trim($url);
+                    if ($qualityLabel === '' || $streamUrl === '') {
+                        continue;
+                    }
+
+                    $streams[$qualityLabel] = $streamUrl;
+                }
+            }
+
+            if (empty($streams)) {
+                continue;
+            }
+
+            $defaultQuality = $episode['default_quality'] ?? null;
+            if (!is_string($defaultQuality) || !isset($streams[$defaultQuality])) {
+                $defaultQuality = array_key_first($streams);
+            }
+
+            if (!is_string($defaultQuality) || $defaultQuality === '') {
+                $defaultQuality = array_key_first($streams);
+            }
+
+            $durationSeconds = null;
+            if (isset($episode['duration_seconds']) && is_numeric($episode['duration_seconds'])) {
+                $durationSeconds = (int) $episode['duration_seconds'];
+            }
+
+            $normalized[] = [
+                'number' => $number,
+                'title' => is_string($episode['title'] ?? null) ? trim((string) $episode['title']) : sprintf('Серия %02d', $number),
+                'description' => is_string($episode['description'] ?? null) ? trim((string) $episode['description']) : '',
+                'duration_seconds' => $durationSeconds,
+                'streams' => $streams,
+                'default_quality' => $defaultQuality,
+            ];
+        }
+
+        usort($normalized, static fn (array $left, array $right) => $left['number'] <=> $right['number']);
+
+        return array_values($normalized);
+    }
+
+    private function normalizeRelatedForStorage(array $related): array
+    {
+        $normalized = [];
+
+        foreach ($related as $item) {
+            if (!is_array($item)) {
+                continue;
+            }
+
+            $releaseId = isset($item['id']) ? (int) $item['id'] : null;
+            if ($releaseId === null || $releaseId <= 0) {
+                continue;
+            }
+
+            $title = is_string($item['title'] ?? null) && trim($item['title']) !== ''
+                ? trim($item['title'])
+                : 'Сезон';
+
+            $titleEnglish = is_string($item['title_english'] ?? null) && trim($item['title_english']) !== ''
+                ? trim($item['title_english'])
+                : null;
+
+            $posterUrl = is_string($item['poster_url'] ?? null) && trim($item['poster_url']) !== ''
+                ? trim($item['poster_url'])
+                : null;
+
+            $identifier = $item['identifier'] ?? ($item['alias'] ?? null);
+            if (is_string($identifier)) {
+                $identifier = trim($identifier);
+            }
+
+            if (!is_string($identifier) || $identifier === '') {
+                $identifier = (string) $releaseId;
+            }
+
+            $relation = is_string($item['relation'] ?? null) && trim($item['relation']) !== ''
+                ? trim($item['relation'])
+                : null;
+
+            $normalized[] = [
+                'id' => $releaseId,
+                'title' => $title,
+                'title_english' => $titleEnglish,
+                'poster_url' => $posterUrl,
+                'identifier' => $identifier,
+                'alias' => is_string($item['alias'] ?? null) ? trim((string) $item['alias']) : null,
+                'relation' => $relation,
+            ];
+        }
+
+        return array_values($normalized);
+    }
+
+    private function prepareEpisodesForView(array $episodes): array
+    {
+        $prepared = [];
+
+        foreach ($episodes as $episode) {
+            if (!is_array($episode)) {
+                continue;
+            }
+
+            $number = isset($episode['number']) ? (int) $episode['number'] : null;
+            if ($number === null || $number <= 0) {
+                continue;
+            }
+
+            $streams = $this->normalizeStreamsForView($episode['streams'] ?? []);
+            if (empty($streams)) {
+                continue;
+            }
+
+            $defaultQuality = $episode['default_quality'] ?? null;
+            if (!is_string($defaultQuality) || !isset($streams[$defaultQuality])) {
+                $defaultQuality = array_key_first($streams);
+            }
+
+            if ($defaultQuality === null) {
+                continue;
+            }
+
+            $durationSeconds = null;
+            if (isset($episode['duration_seconds']) && is_numeric($episode['duration_seconds'])) {
+                $durationSeconds = (int) $episode['duration_seconds'];
+            }
+
+            $title = is_string($episode['title'] ?? null) && trim($episode['title']) !== ''
+                ? trim($episode['title'])
+                : sprintf('Серия %02d', $number);
+
+            $prepared[] = [
+                'number' => $number,
+                'title' => $title,
+                'description' => is_string($episode['description'] ?? null) ? trim((string) $episode['description']) : '',
+                'duration' => $this->formatEpisodeDuration($durationSeconds),
+                'stream_url' => $streams[$defaultQuality],
+                'streams' => $streams,
+                'default_quality' => $defaultQuality,
+            ];
+        }
+
+        usort($prepared, static fn (array $left, array $right) => $left['number'] <=> $right['number']);
+
+        return array_values($prepared);
+    }
+
+    private function normalizeStreamsForView($streams): array
+    {
+        if (!is_array($streams)) {
+            return [];
+        }
+
+        $entries = [];
+        foreach ($streams as $quality => $url) {
+            if (!is_string($quality) || !is_string($url)) {
+                continue;
+            }
+
+            $qualityLabel = trim($quality);
+            $streamUrl = trim($url);
+
+            if ($qualityLabel === '' || $streamUrl === '') {
+                continue;
+            }
+
+            $entries[] = [$qualityLabel, $streamUrl];
+        }
+
+        if (empty($entries)) {
+            return [];
+        }
+
+        usort($entries, static function (array $left, array $right): int {
+            $parseQuality = static function (string $value): int {
+                if (preg_match('/(\d+)/', $value, $matches)) {
+                    return (int) $matches[1];
+                }
+
+                return 0;
+            };
+
+            $leftQuality = $parseQuality($left[0]);
+            $rightQuality = $parseQuality($right[0]);
+
+            if ($leftQuality === $rightQuality) {
+                return strnatcasecmp($right[0], $left[0]);
+            }
+
+            return $rightQuality <=> $leftQuality;
+        });
+
+        $normalized = [];
+        foreach ($entries as [$quality, $url]) {
+            $normalized[$quality] = $url;
+        }
+
+        return $normalized;
+    }
+
+    private function prepareSeasonsForView(Anime $anime, array $related): array
+    {
+        $currentReleaseId = (int) $anime->getKey();
+        $potentialIdentifiers = array_values(array_filter([
+            is_string($anime->alias ?? null) && trim($anime->alias) !== '' ? trim($anime->alias) : null,
+            $currentReleaseId > 0 ? (string) $currentReleaseId : null,
+        ], static fn ($value) => is_string($value) && $value !== ''));
+
+        $seasonsById = [];
+
+        foreach ($related as $relatedSeason) {
+            if (!is_array($relatedSeason)) {
+                continue;
+            }
+
+            $releaseId = isset($relatedSeason['id']) ? (int) $relatedSeason['id'] : null;
+            if (!$releaseId || $releaseId <= 0 || $releaseId === $currentReleaseId) {
                 continue;
             }
 
@@ -180,14 +429,15 @@ class WatchController extends Controller
             }
 
             $title = is_string($relatedSeason['title'] ?? null) && trim($relatedSeason['title']) !== ''
-                ? $relatedSeason['title']
+                ? trim($relatedSeason['title'])
                 : 'Сезон';
 
             $relation = is_string($relatedSeason['relation'] ?? null) && trim($relatedSeason['relation']) !== ''
                 ? trim($relatedSeason['relation'])
                 : null;
 
-            $isActive = in_array($identifier, $potentialIdentifiers, true) || (string) $releaseId === ($potentialIdentifiers[1] ?? null);
+            $isActive = in_array($identifier, $potentialIdentifiers, true)
+                || (string) $releaseId === ($potentialIdentifiers[1] ?? null);
 
             $seasonsById[$releaseId] = [
                 'title' => $title,
@@ -219,7 +469,8 @@ class WatchController extends Controller
         unset($season);
 
         if (!$hasActiveSeason) {
-            $fallbackIdentifier = $potentialIdentifiers[0] ?? ($potentialIdentifiers[1] ?? ($currentReleaseId > 0 ? (string) $currentReleaseId : null));
+            $fallbackIdentifier = $potentialIdentifiers[0]
+                ?? ($potentialIdentifiers[1] ?? ($currentReleaseId > 0 ? (string) $currentReleaseId : null));
 
             if (is_string($fallbackIdentifier) && $fallbackIdentifier !== '') {
                 array_unshift($seasons, [
@@ -233,12 +484,19 @@ class WatchController extends Controller
             }
         }
 
-        return view('watch', [
-            'anime' => $anime,
-            'episodes' => $episodes,
-            'activeEpisode' => $activeEpisode,
-            'seasons' => $seasons,
-        ])->render();
+        return $seasons;
+    }
+
+    private function formatEpisodeDuration(?int $seconds): string
+    {
+        if ($seconds === null || $seconds <= 0) {
+            return '—';
+        }
+
+        $minutes = (int) round($seconds / 60);
+        $minutes = max($minutes, 1);
+
+        return sprintf('%d мин.', $minutes);
     }
 
     private function persistAnimeRelease(array $release): Anime
