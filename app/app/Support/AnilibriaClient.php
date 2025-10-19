@@ -2,6 +2,10 @@
 
 namespace App\Support;
 
+use App\Models\Anime;
+use App\Models\Genre;
+use App\Models\AnimeCatalogCache;
+use App\Support\PosterStorage;
 use Illuminate\Support\Arr;
 
 class AnilibriaClient
@@ -72,13 +76,157 @@ class AnilibriaClient
         ];
     }
 
+    public function fetchLite(
+        $sort = 'lite_new',
+        int $page = 1,
+        int $limit = 24,
+        $search = null,
+        $genres = [],
+        $isOngoing = null
+    ) {
+        $url = self::API_BASE_URL . self::CATALOG_ENDPOINT;
+        /* Filters
+            f[genres] = source_id,source_id, ...
+            f[types] = ["TV", "WEB"]: TV, ONA, WEB, OVA, OAD, MOVIE, DORAMA, SPECIAL
+            f[publish_statuses] = IS_ONGOING, IS_NOT_ONGOING
+            f[sorting] = RATING_DESC, FRESH_AT_DESC
+            f[search] = <string>
+        */
+        $genres = join(',', $genres);
+
+        if ($isOngoing !== null && $isOngoing) {
+            $isOngoing = 'IS_ONGOING';
+        } else if ($isOngoing !== null && !$isOngoing) {
+            $isOngoing = 'IS_NOT_ONGOING';
+        }
+
+        if ($sort == 'lite_top' || $sort == 'top') {
+            $sorting = 'RATING_DESC';
+        } else {
+            $sorting = 'FRESH_AT_DESC';
+        }
+
+        $response = $this->makeRequest($url, [
+            'f[sorting]' => $sorting,
+            'f[genres]' => $genres,
+            'f[publish_statuses]' => $isOngoing,
+            'f[search]' => $search,
+            'limit' => $limit,
+            'page' => $page
+        ]);
+
+        $data = $response['data'] ?? [];
+        $this->updateAnimeByList($data);
+
+        $data['animeIds'] = Arr::pluck($data, 'id');
+        $this->updateAnimeCache($sort, $data['animeIds'], $page);
+
+        return $data;
+    }
+
+    private function updateAnimeByList(array $list)
+    {
+        foreach ($list as $anime) {
+            $this->updateAnime($anime);
+        }
+    }
+
+    private function updateAnime(array $data)
+    {
+        [$posterPath, $posterSource] = $this->updatePoster($data);
+
+        $anime = Anime::updateOrCreate(
+            ['id' => $data['id']],
+            [
+                'title' => $this->resolveTitle($data),
+                'title_english' => $this->resolveEnglishTitle($data),
+                'poster_url' => $posterSource,
+                'poster' => $posterPath,
+                'type' => Arr::get($data, 'type.description'),
+                'description' => Arr::get($data, 'description'),
+                'year' => Arr::get($data, 'year'),
+                'episodes_total' => Arr::get($data, 'episodes_total'),
+                'alias' => Arr::get($data, 'alias'),
+                'is_ongoing' => Arr::get($data, 'is_ongoing'),
+                'age_rating' => Arr::get($data, 'age_rating.value'),
+            ]
+        );
+
+        $genreIds = Arr::pluck($data['genres'], 'id');
+        $anime->genres()->sync($genreIds);
+
+        $this->updateGenres($data);
+    }
+
+    private function updatePoster($data)
+    {
+        $existing = Anime::find($data['id']);
+        /** @var PosterStorage $posterStorage */
+        $posterStorage = app(PosterStorage::class);
+
+        $posterPath = $posterStorage->store(
+            $data['poster']['optimized']['preview'],
+            $existing?->poster  ?? '',
+            $existing?->getRawOriginal('poster_url'),
+            (int) $data['id']
+        );
+
+        $posterSource = $posterStorage->resolvePosterUrl(
+            $data['poster']['optimized']['preview'],
+            $existing?->getRawOriginal('poster_url')
+        );
+
+        if (!$posterPath || !$posterSource || !file_exists($posterPath)) {
+            $posterSource = $data['poster']['optimized']['preview'];
+            $context = stream_context_create([
+                'http' => [
+                    'timeout' => 5,
+                    'ignore_errors' => true,
+                ],
+            ]);
+            $file = file_get_contents('https://anilibria.top' . $posterSource, false, $context) ?: null;
+            $filename = basename(parse_url($data['poster']['optimized']['preview'], PHP_URL_PATH));
+            $posterPath = 'data/posters/' . $filename;
+            file_put_contents($posterPath, $file);
+        }
+
+        return [$posterPath, $posterSource];
+    }
+
+    private function updateGenres($data)
+    {
+        foreach ($data['genres'] as $genre) {
+            Genre::firstOrCreate(
+                ['name' => $genre['name']],
+                [
+                    'id' => $genre['id'],
+                ]
+            );
+        }
+    }
+
+    private function updateAnimeCache($category, $animeIds, $page = 1)
+    {
+        AnimeCatalogCache::updateOrCreate(
+            [
+                'category' => $category,
+                'page' => $page,
+            ],
+            [
+                'anime_ids' => $animeIds,
+                'cached_date' => date('Y-m-d'),
+            ]
+        );
+    }
+
+
     public function fetchCatalogPage(string $sorting, int $page = 1): array
     {
         $url = sprintf('%s%s', self::API_BASE_URL, self::CATALOG_ENDPOINT);
         $payload = $this->makeRequest($url, [
             'f[sorting]' => $sorting,
             'page' => max(1, $page),
-            'per_page' => self::CATALOG_PER_PAGE,
+            'limit' => self::CATALOG_PER_PAGE,
         ]);
 
         if (!is_array($payload)) {
@@ -306,7 +454,7 @@ class AnilibriaClient
             ];
         }
 
-        usort($normalized, static fn (array $left, array $right) => $left['number'] <=> $right['number']);
+        usort($normalized, static fn(array $left, array $right) => $left['number'] <=> $right['number']);
 
         return $normalized;
     }
@@ -513,7 +661,7 @@ class AnilibriaClient
         return null;
     }
 
-    private function makeRequest(string $url, array $query = []): ?array
+    public function makeRequest(string $url, array $query = []): ?array
     {
         if (!empty($query)) {
             $url .= (str_contains($url, '?') ? '&' : '?') . http_build_query($query, '', '&', PHP_QUERY_RFC3986);

@@ -2,11 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Support\AnimeCatalogService;
-use App\Support\Auth;
 use Illuminate\Http\Request;
 use App\Models\AnimeCatalogCache;
 use App\Models\Anime;
+use App\Support\AnilibriaClient;
 
 class ListController extends Controller
 {
@@ -16,16 +15,24 @@ class ListController extends Controller
         $page = $request->input('page', 1);
         $results = AnimeCatalogCache::query()
             ->where('page', $page)
-            ->where('category', 'new')
+            ->where('category', 'lite_new')
+            ->whereDate('cached_date', date('Y-m-d'))
             ->first();
 
+        if (!$results) {
+            $client = new AnilibriaClient();
+            $results = $client->fetchLite('lite_new', $page);
+            $animeIds = $results['animeIds'];
+        } else {
+            $animeIds = $results->anime_ids;
+        }
+
         $items = Anime::query()
-            ->whereIn('id', $results->anime_ids ?? [])
+            ->whereIn('id', $animeIds ?? [])
             ->paginate(24);
 
         return view('lite.list', [
             'items' => $items,
-            'mode' => 'new',
             'page' => $page,
         ]);
     }
@@ -36,16 +43,24 @@ class ListController extends Controller
         $page = $request->input('page', 1);
         $results = AnimeCatalogCache::query()
             ->where('page', $page)
-            ->where('category', 'top')
+            ->where('category', 'lite_top')
+            ->whereDate('cached_date', date('Y-m-d'))
             ->first();
 
+        if (!$results) {
+            $client = new AnilibriaClient();
+            $results = $client->fetchLite('lite_top', $page);
+            $animeIds = $results['animeIds'];
+        } else {
+            $animeIds = $results->anime_ids;
+        }
+
         $items = Anime::query()
-            ->whereIn('id', $results->anime_ids ?? [])
+            ->whereIn('id', $animeIds ?? [])
             ->paginate(24);
 
         return view('lite.list', [
             'items' => $items,
-            'mode' => 'top',
             'page' => $page,
         ]);
     }
