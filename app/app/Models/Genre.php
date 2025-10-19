@@ -12,14 +12,11 @@ class Genre extends Model
 
     protected $fillable = [
         'name',
-        'source_id',
     ];
 
     public $timestamps = false;
 
-    protected $casts = [
-        'source_id' => 'integer',
-    ];
+    public $incrementing = false;
 
     public function anime(): BelongsToMany
     {
