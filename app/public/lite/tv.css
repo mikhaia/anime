@@ -1,0 +1,24 @@
+.tv .list {
+	margin: -10px;
+}
+
+.tv .list .item {
+	margin: 10px;	
+}
+
+.tv .nav-search {
+    border-bottom: 3px solid red;
+}
+
+.tv .nav-favorites {
+    border-bottom: 3px solid green;
+}
+
+.tv .nav-new {
+    border-bottom: 3px solid yellow;
+
+}
+
+.tv .nav-top {
+    border-bottom: 3px solid blue;
+}

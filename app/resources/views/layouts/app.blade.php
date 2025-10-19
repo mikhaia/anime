@@ -39,7 +39,7 @@
                         id="nav-user-menu-button"
                         type="button"
                         data-dropdown-toggle="nav-user-menu"
-                        class="nav-button nav-profile flex items-center gap-3 pe-3"
+                        class="nav-button nav-profile flex items-center gap-3 pe-3 right-0"
                     >
                         <span class="nav-profile__avatar" aria-hidden="true">
                             @if($currentUser->avatar_path)

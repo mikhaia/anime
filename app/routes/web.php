@@ -50,3 +50,8 @@ $router->post('/switch-user/login', 'AuthController@loginFromDevice');
 $router->post('/favorites', 'FavoriteController@store');
 $router->delete('/favorites/{animeId:[0-9]+}', 'FavoriteController@destroy');
 $router->post('/watch-progress', 'WatchProgressController@store');
+
+// Lite Routes
+$router->get('/new', 'ListController@new');
+$router->get('/top', 'ListController@top');
+// $router->get('/favorites', 'ListController@top');
