@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Anime extends Model
@@ -19,11 +20,17 @@ class Anime extends Model
         'year',
         'episodes_total',
         'alias',
+        'is_ongoing',
+        'age_rating',
     ];
 
     public $incrementing = false;
 
     protected $keyType = 'int';
+
+    protected $casts = [
+        'is_ongoing' => 'boolean',
+    ];
 
     public function favorites(): HasMany
     {
@@ -33,6 +40,11 @@ class Anime extends Model
     public function watchProgress(): HasMany
     {
         return $this->hasMany(WatchProgress::class);
+    }
+
+    public function genres(): BelongsToMany
+    {
+        return $this->belongsToMany(Genre::class, 'anime_genre');
     }
 
     public function getPosterUrlAttribute($value): ?string
