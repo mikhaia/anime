@@ -1,0 +1,89 @@
+.header {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  padding: 10px 16px;
+  background-color: #222;
+}
+
+.header .menu-toggle {
+  align-self: flex-start;
+}
+
+.menu-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  background: none;
+  border: none;
+  color: #fff;
+  padding: 0;
+  cursor: pointer;
+}
+
+.menu-toggle svg {
+  width: 32px;
+  height: 32px;
+}
+
+.nav {
+  display: none;
+  width: 100%;
+}
+
+.nav.open {
+  display: block;
+}
+
+.nav ul {
+  flex-direction: column;
+  align-items: stretch;
+  background: #222;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.nav li {
+  margin: 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.nav li:first-child {
+  border-top: none;
+}
+
+.nav a {
+  padding: 14px 16px;
+}
+
+.nav .submenu {
+  position: static;
+  margin: 0;
+  padding: 0;
+  border-radius: 0;
+  background: #181818;
+}
+
+.nav .submenu a {
+  padding-left: 32px;
+}
+
+.nav .has-submenu {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.nav .has-submenu > a {
+  width: 100%;
+}
+
+.nav .has-submenu.open > .submenu {
+  display: block;
+}
+
+.list .item {
+  width: 195px;
+}
