@@ -87,3 +87,9 @@
 .list .item {
   width: 195px;
 }
+
+@media (max-width: 400px) {
+  .list .item {
+    width: 170px;
+  }
+}
