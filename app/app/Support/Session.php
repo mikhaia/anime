@@ -8,6 +8,8 @@ class Session
 
     public static function start(): void
     {
+        self::extendLifetime();
+
         if (session_status() === PHP_SESSION_NONE) {
             if (headers_sent()) {
                 if (!isset($_SESSION)) {
@@ -88,5 +90,32 @@ class Session
             $_SESSION['_flash']['next'] = [];
             self::$flashInitialized = true;
         }
+    }
+
+    protected static function extendLifetime(): void
+    {
+        $lifetimeSeconds = 60 * 60 * 24 * 365;
+
+        ini_set('session.gc_maxlifetime', (string) $lifetimeSeconds);
+        ini_set('session.cookie_lifetime', (string) $lifetimeSeconds);
+
+        $params = [
+            'lifetime' => $lifetimeSeconds,
+            'path' => '/',
+            'httponly' => true,
+            'samesite' => 'Lax',
+        ];
+
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            $cookie = $params;
+            unset($cookie['lifetime']);
+            $cookie['expires'] = time() + $lifetimeSeconds;
+
+            setcookie(session_name(), session_id(), $cookie);
+
+            return;
+        }
+
+        session_set_cookie_params($params);
     }
 }
