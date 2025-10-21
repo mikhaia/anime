@@ -1,7 +1,11 @@
 @extends('layouts.lite')
-{{-- {{ dd($items) }} --}}
+
 @section('content')
     <div class="wrapper">
+        @if ($searchQuery)
+            <h2 class="search-title">Результаты поиска по "{{ $searchQuery }}"</h2>
+        @endif
+
         <div class="list">
             @foreach ($items as $item)
                 <a class="item" href="/watch/{{ $item->alias }}">

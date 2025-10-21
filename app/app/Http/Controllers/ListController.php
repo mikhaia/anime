@@ -34,6 +34,7 @@ class ListController extends Controller
         return view('lite.list', [
             'items' => $items,
             'page' => $page,
+            'searchQuery' => null,
         ]);
     }
 
@@ -62,6 +63,42 @@ class ListController extends Controller
         return view('lite.list', [
             'items' => $items,
             'page' => $page,
+            'searchQuery' => null,
+        ]);
+    }
+
+    public function search(Request $request)
+    {
+        $searchQuery = trim((string) $request->input('query', ''));
+        $page = $request->input('page', 1);
+
+        if (!$searchQuery) {
+            $items = Anime::query()
+                ->whereIn('id', [])
+                ->paginate(24);
+
+            return view('lite.search', [
+                'items' => $items,
+                'page' => $page,
+                'searchQuery' => $searchQuery,
+            ]);
+        }
+
+        $client = new AnilibriaClient();
+        $cacheCategory = 'lite_search::' . $searchQuery;
+        $response = $client->fetchLite($cacheCategory, $page, 24, $searchQuery);
+        $animeIds = $response['animeIds'] ?? [];
+
+        $items = Anime::query()
+            ->whereIn('id', $animeIds)
+            ->paginate(24);
+
+        $items->appends(['query' => $searchQuery]);
+
+        return view('lite.search', [
+            'items' => $items,
+            'page' => $page,
+            'searchQuery' => $searchQuery,
         ]);
     }
 }

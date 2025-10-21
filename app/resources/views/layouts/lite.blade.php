@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="/lite/style.css">
     <link rel="stylesheet" href="/lite/mobile.css" media="(max-width: 655px)">
     <link rel="stylesheet" href="/lite/tv.css">
+    <link rel="stylesheet" href="/lite/search.css">
     <link rel="stylesheet" href="/lite/chromecast.css">
 
     <!-- Temporary disable cache -->
@@ -46,7 +47,7 @@
                     </ul>
                 </li>
                 <li class="nav-search">
-                    <a href="">
+                    <a href="/search">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"
                             stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
