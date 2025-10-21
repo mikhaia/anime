@@ -2,8 +2,6 @@
 
 namespace App\Support;
 
-use function config;
-
 class Session
 {
     protected static bool $flashInitialized = false;
@@ -96,36 +94,22 @@ class Session
 
     protected static function extendLifetime(): void
     {
-        if (session_status() !== PHP_SESSION_ACTIVE && ($cookieName = config('session.cookie')) !== null) {
-            session_name($cookieName);
-        }
+        $lifetimeSeconds = 60 * 60 * 24 * 365;
 
-        $lifetimeMinutes = (int) config('session.lifetime', 120);
-        $expireOnClose = (bool) config('session.expire_on_close', false);
-        $lifetimeSeconds = $expireOnClose ? 0 : $lifetimeMinutes * 60;
-
-        ini_set('session.gc_maxlifetime', (string) max($lifetimeSeconds, 1));
+        ini_set('session.gc_maxlifetime', (string) $lifetimeSeconds);
         ini_set('session.cookie_lifetime', (string) $lifetimeSeconds);
 
         $params = [
             'lifetime' => $lifetimeSeconds,
-            'path' => config('session.path', '/'),
-            'secure' => (bool) config('session.secure', false),
-            'httponly' => (bool) config('session.http_only', true),
+            'path' => '/',
+            'httponly' => true,
+            'samesite' => 'Lax',
         ];
-
-        if (($domain = config('session.domain')) !== null) {
-            $params['domain'] = $domain;
-        }
-
-        if (($sameSite = config('session.same_site')) !== null) {
-            $params['samesite'] = $sameSite;
-        }
 
         if (session_status() === PHP_SESSION_ACTIVE) {
             $cookie = $params;
             unset($cookie['lifetime']);
-            $cookie['expires'] = $expireOnClose ? 0 : time() + $lifetimeSeconds;
+            $cookie['expires'] = time() + $lifetimeSeconds;
 
             setcookie(session_name(), session_id(), $cookie);
 
