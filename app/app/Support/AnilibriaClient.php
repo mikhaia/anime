@@ -213,6 +213,7 @@ class AnilibriaClient
                 'page' => $page,
             ],
             [
+                'has_next_page' => true,
                 'anime_ids' => $animeIds,
                 'cached_date' => date('Y-m-d'),
             ]
