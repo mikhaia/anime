@@ -54,4 +54,5 @@ $router->post('/watch-progress', 'WatchProgressController@store');
 // Lite Routes
 $router->get('/new', 'ListController@new');
 $router->get('/top', 'ListController@top');
+$router->get('/search', 'ListController@search');
 // $router->get('/favorites', 'ListController@top');
