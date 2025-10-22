@@ -59,7 +59,7 @@
                 <li class="nav-favorites {{ request()->is('favs*') ? 'active' : '' }}">
                     <a href="">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor"
-                            viewBox="0 0 20 20">
+                            viewBox="0 0 24 24">
                             <path
                                 d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 18.343 3.172 10.828a4 4 0 010-5.656z" />
                         </svg>
@@ -69,7 +69,7 @@
                 <li class="nav-new {{ request()->is('new*') ? 'active' : '' }}">
                     <a href="/new">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor"
-                            viewBox="0 0 20 20">
+                            viewBox="0 0 24 24">
                             <path
                                 d="M5 2a1 1 0 01.894.553L7.382 4H9a1 1 0 010 2H7.382l-.488 1.447A1 1 0 015 10a1 1 0 01-.894-.553L3.618 7H2a1 1 0 110-2h1.618l.488-1.447A1 1 0 015 2zM15 6a1 1 0 01.894.553L17.382 8H19a1 1 0 110 2h-1.618l-.488 1.447A1 1 0 0115 14a1 1 0 01-.894-.553L13.618 11H12a1 1 0 110-2h1.618l.488-1.447A1 1 0 0115 6zM10 12a1 1 0 01.894.553L11.382 14H13a1 1 0 110 2h-1.618l-.488 1.447A1 1 0 019 19a1 1 0 01-.894-.553L7.618 16H6a1 1 0 110-2h1.618l.488-1.447A1 1 0 0110 12z" />
                         </svg>
