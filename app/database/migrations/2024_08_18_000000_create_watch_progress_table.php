@@ -10,7 +10,7 @@ return new class extends Migration {
         Schema::create('watch_progress', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('user_id');
-            $table->unsignedBigInteger('anime_id');
+            $table->unsignedSmallInteger('anime_id');
             $table->unsignedInteger('episode_number');
             $table->timestamps();
 
