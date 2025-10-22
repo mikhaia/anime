@@ -1,11 +1,11 @@
 @extends('layouts.lite')
 
 @section('content')
-    <div class="wrapper">
-        @if ($searchQuery)
-            <h2 class="search-title">Результаты поиска по "{{ $searchQuery }}"</h2>
-        @endif
+    @if ($searchQuery)
+        <h2 class="search-title">Результаты поиска по "{{ $searchQuery }}"</h2>
+    @endif
 
+    <div class="wrapper">
         <div class="list">
             @foreach ($items as $item)
                 <a class="item" href="/watch/{{ $item->alias }}">
@@ -15,5 +15,8 @@
             @endforeach
         </div>
     </div>
-    {{ $items->links('vendor.pagination.lite') }}
+
+    @if (count($items) >= 24)
+        @include('vendor.pagination.lite')
+    @endif
 @endsection

@@ -28,12 +28,11 @@ class ListController extends Controller
         }
 
         $items = Anime::query()
-            ->whereIn('id', $animeIds ?? [])
-            ->paginate(24);
+            ->whereIn('id', $animeIds)
+            ->get();
 
         return view('lite.list', [
             'items' => $items,
-            'page' => $page,
             'searchQuery' => null,
         ]);
     }
@@ -57,12 +56,11 @@ class ListController extends Controller
         }
 
         $items = Anime::query()
-            ->whereIn('id', $animeIds ?? [])
-            ->paginate(24);
+            ->whereIn('id', $animeIds)
+            ->get();
 
         return view('lite.list', [
             'items' => $items,
-            'page' => $page,
             'searchQuery' => null,
         ]);
     }
@@ -74,12 +72,12 @@ class ListController extends Controller
 
         if (!$searchQuery) {
             $items = Anime::query()
-                ->whereIn('id', [])
-                ->paginate(24);
+                ->inRandomOrder()
+                ->limit(24)
+                ->get();
 
             return view('lite.search', [
-                'items' => $items,
-                'page' => $page,
+                'items' => [],
                 'searchQuery' => $searchQuery,
             ]);
         }
@@ -92,8 +90,6 @@ class ListController extends Controller
         $items = Anime::query()
             ->whereIn('id', $animeIds)
             ->paginate(24);
-
-        $items->appends(['query' => $searchQuery]);
 
         return view('lite.search', [
             'items' => $items,

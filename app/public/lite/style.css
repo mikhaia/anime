@@ -79,17 +79,40 @@ body {
     outline: 2px solid yellow;
 }
 
+.nav .active.nav-search {
+    background-color: red;
+}
+
+.nav .active.nav-favorites {
+    background-color: green;
+}
+
+.nav .active.nav-new {
+    background-color: yellow;
+}
+
+.nav .active.nav-new a {
+    color: #222;
+}
+
+.nav .active.nav-top {
+    background-color: blue;
+}
+
+
 
 /* LIST */
 
 .wrapper {
     margin: 30px auto;
+    display: flex;
+    justify-content: center;
 }
 
 .list {
     display: flex;
     flex-wrap: wrap;
-    justify-content: left;
+    justify-content: center;
 	gap: 20px;
 }
 
@@ -98,10 +121,14 @@ body {
     height: 286px;
     text-align: center;
     background: crimson;
-    border-radius: 5px;
+    border-radius: 10px;
     position: relative;
     overflow: hidden;
     color: #fff;
+}
+
+.list .item:visited {
+    background-color: purple;
 }
 
 .list .item:focus {

@@ -46,7 +46,7 @@
                         <li role="none"><a role="menuitem" href="#logout">Выход</a></li>
                     </ul>
                 </li>
-                <li class="nav-search">
+                <li class="nav-search {{ request()->is('search*') ? 'active' : '' }}">
                     <a href="/search">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"
                             stroke="currentColor">
@@ -56,7 +56,7 @@
                         <span class="nav-label">Поиск</span>
                     </a>
                 </li>
-                <li class="nav-favorites">
+                <li class="nav-favorites {{ request()->is('favs*') ? 'active' : '' }}">
                     <a href="">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor"
                             viewBox="0 0 20 20">
@@ -66,7 +66,7 @@
                         <span class="nav-label">Избранное</span>
                     </a>
                 </li>
-                <li class="nav-new">
+                <li class="nav-new {{ request()->is('new*') ? 'active' : '' }}">
                     <a href="/new">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor"
                             viewBox="0 0 20 20">
@@ -76,7 +76,7 @@
                         <span class="nav-label">Новинки</span>
                     </a>
                 </li>
-                <li class="nav-top">
+                <li class="nav-top {{ request()->is('top*') ? 'active' : '' }}">
                     <a href="/top">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 20 20"
                             fill="currentColor">

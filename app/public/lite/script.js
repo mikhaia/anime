@@ -1,5 +1,6 @@
 let isTV = false;
 let isChromecast = false;
+let isMobile = false;
 
 if(/SmartTV/i.test(navigator.userAgent)) {
 	document.body.classList.add('tv');
@@ -11,15 +12,20 @@ if(/Chromecast/i.test(navigator.userAgent)) {
     isChromecast = true;
 }
 
-const gapWidth = parseInt($('.list').css('gap')); 
-const marginWidth = parseInt($('.list .item').css('margin'));
-const itemWidth = $('.item').width()+gapWidth;
-const itemsInRow = Math.floor(window.innerWidth / itemWidth);
-let listWidth = itemsInRow*itemWidth;
-if (!isTV) {
-	listWidth -= gapWidth; 
+if(window.innerWidth <= 655) {
+  isMobile = true;
 }
-$('.list').width(listWidth);
+
+if (!isMobile) {
+  const gapWidth = parseInt($('.list').css('gap'));
+  const itemWidth = $('.item').width()+gapWidth;
+  const itemsInRow = Math.floor(window.innerWidth / itemWidth);
+  let listWidth = itemsInRow*itemWidth;
+  if (!isTV) {
+    listWidth -= gapWidth; 
+  }
+  $('.list').width(listWidth);
+}
 
 const $menuToggle = $('#menu-toggle');
 const $nav = $('.nav');
@@ -56,7 +62,7 @@ $(document).on('keydown', function (e) {
       case 403: location.href = '/'; break; // TV Red Button
       case 404: location.href = '/list?mode=favorites'; break; // TV Green Button
       case 405: location.href = '/new'; break; // TV Yellow Button
-      case 407: location.href = '/top'; break;  // TV Blue Button
+      case 406: location.href = '/top'; break;  // TV Blue Button
     };
   }
 });
