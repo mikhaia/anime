@@ -42,11 +42,6 @@ class Anime extends Model
         return $this->hasMany(WatchProgress::class);
     }
 
-    public function episodes(): HasMany
-    {
-        return $this->hasMany(Episode::class);
-    }
-
     public function genres(): BelongsToMany
     {
         return $this->belongsToMany(Genre::class, 'anime_genre');

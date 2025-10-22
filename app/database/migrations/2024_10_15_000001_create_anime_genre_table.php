@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('anime_genre', function (Blueprint $table) {
             $table->id();
-            $table->unsignedSmallInteger('anime_id');
+            $table->unsignedBigInteger('anime_id');
             $table->unsignedBigInteger('genre_id');
 
             $table->foreign('anime_id')->references('id')->on('anime')->cascadeOnDelete();
