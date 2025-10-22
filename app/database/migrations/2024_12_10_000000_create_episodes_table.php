@@ -7,22 +7,21 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration {
     public function up(): void
     {
-        Schema::create('watch_progress', function (Blueprint $table) {
-            $table->id();
-            $table->unsignedBigInteger('user_id');
+        Schema::create('episodes', function (Blueprint $table) {
+            $table->increments('id');
             $table->unsignedSmallInteger('anime_id');
-            $table->unsignedInteger('episode_number');
+            $table->unsignedSmallInteger('number');
+            $table->string('title');
+            $table->unsignedSmallInteger('duration')->nullable();
             $table->timestamps();
 
-            $table->unique(['user_id', 'anime_id']);
-
-            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+            $table->unique(['anime_id', 'number']);
             $table->foreign('anime_id')->references('id')->on('anime')->onDelete('cascade');
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('watch_progress');
+        Schema::dropIfExists('episodes');
     }
 };
