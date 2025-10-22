@@ -9,7 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('anime', function (Blueprint $table) {
-            $table->unsignedBigInteger('id')->primary();
+            $table->smallIncrements('id');
             $table->string('title');
             $table->string('poster_url')->nullable();
             $table->string('type')->nullable();
