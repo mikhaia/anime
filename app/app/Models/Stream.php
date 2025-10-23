@@ -8,10 +8,16 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class Stream extends Model
 {
     protected $fillable = [
+        'anime_id',
         'episode_id',
         'quality',
         'url',
     ];
+
+    public function anime(): BelongsTo
+    {
+        return $this->belongsTo(Anime::class);
+    }
 
     public function episode(): BelongsTo
     {
