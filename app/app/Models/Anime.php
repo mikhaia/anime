@@ -52,6 +52,11 @@ class Anime extends Model
         return $this->belongsToMany(Genre::class, 'anime_genre');
     }
 
+    public function relates(): HasMany
+    {
+        return $this->hasMany(Relate::class);
+    }
+
     public function getPosterUrlAttribute($value): ?string
     {
         if (is_string($this->poster) && trim($this->poster) !== '') {
