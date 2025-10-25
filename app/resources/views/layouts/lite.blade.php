@@ -10,14 +10,6 @@
     <link rel="stylesheet" href="/lite/tv.css">
     <link rel="stylesheet" href="/lite/search.css">
     <link rel="stylesheet" href="/lite/chromecast.css">
-
-    <!-- Temporary disable cache -->
-    <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate" />
-    <meta http-equiv="Pragma" content="no-cache" />
-    <meta http-equiv="Expires" content="0" />
-    <script>
-
-    </script>
 </head>
 
 <body>

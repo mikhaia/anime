@@ -55,4 +55,5 @@ $router->post('/watch-progress', 'WatchProgressController@store');
 $router->get('/new', 'ListController@new');
 $router->get('/top', 'ListController@top');
 $router->get('/search', 'ListController@search');
+$router->get('/anime/{id}', 'ViewController@show');
 // $router->get('/favorites', 'ListController@top');

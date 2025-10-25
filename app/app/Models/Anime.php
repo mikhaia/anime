@@ -42,9 +42,14 @@ class Anime extends Model
         return $this->hasMany(WatchProgress::class);
     }
 
+    public function streams()
+    {
+        return $this->hasMany(Stream::class);
+    }
+
     public function episodes(): HasMany
     {
-        return $this->hasMany(Episode::class);
+        return $this->hasMany(Episode::class)->orderBy('number');
     }
 
     public function genres(): BelongsToMany

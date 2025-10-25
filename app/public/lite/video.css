@@ -1,0 +1,56 @@
+.screen {
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.screen > .title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
+}
+
+.video {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+.video-cover {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-size: cover;
+    background-position: center center;
+    z-index: 20;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+}
+
+#player {
+    max-height: 100%;
+    height: auto;
+}
+
+.video-controls {
+    display: flex;
+    justify-content: space-between;
+    padding: 20px;
+}
+
+select, button {
+    padding: 10px;
+    border-radius: 5px;
+}
+
+button {
+    cursor: pointer;
+}

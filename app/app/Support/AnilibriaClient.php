@@ -76,6 +76,42 @@ class AnilibriaClient
         ];
     }
 
+    public function fetchDetails($animeId)
+    {
+        $url = self::API_BASE_URL . self::RELEASE_ENDPOINT . '/' . $animeId;
+        $release = $this->makeRequest($url);
+        foreach ($release['episodes'] as $k => $episode) {
+            $hls = [];
+            foreach ($episode as $key => $value) {
+                if (str_starts_with($key, 'hls_')) {
+                    $hls[substr($key, 4)] = $value;
+                }
+            }
+            $release['episodes'][$k]['duration_seconds'] = $episode['duration'];
+            $release['episodes'][$k]['number'] = $episode['sort_order'];
+            $release['episodes'][$k]['title'] = $episode['name'];
+            $release['episodes'][$k]['streams'] = $hls;
+        }
+
+        $url = self::API_BASE_URL . self::FRANCHISE_RELEASE_ENDPOINT . '/' . $animeId;
+        $related = $this->makeRequest($url);
+        $relates = [];
+        foreach ($related as $relate) {
+            foreach ($relate['franchise_releases'] as $r) {
+                $number = $r['sort_order'];
+                $details = $r['release'];
+                $relates[$number] = $details;
+                $relates[$number]['title'] = $details['name']['main'];
+                $relates[$number]['title_english'] = $details['name']['english'];
+                $relates[$number]['anime_id'] = $animeId;
+            }
+        }
+        $release['related'] = $relates;
+
+
+        return $release;
+    }
+
     public function fetchLite(
         $sort = 'lite_new',
         int $page = 1,
@@ -131,7 +167,7 @@ class AnilibriaClient
         }
     }
 
-    private function updateAnime(array $data)
+    public function updateAnime(array $data)
     {
         [$posterPath, $posterSource] = $this->updatePoster($data);
 
@@ -156,6 +192,8 @@ class AnilibriaClient
         $anime->genres()->sync($genreIds);
 
         $this->updateGenres($data);
+
+        return $anime;
     }
 
     private function updatePoster($data)

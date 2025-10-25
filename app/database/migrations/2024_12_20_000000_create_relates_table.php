@@ -1,16 +1,17 @@
 <?php
 
-use Illuminate\\Database\\Migrations\\Migration;
-use Illuminate\\Database\\Schema\\Blueprint;
-use Illuminate\\Support\\Facades\\Schema;
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
     public function up(): void
     {
         Schema::create('relates', function (Blueprint $table) {
-            $table->unsignedBigInteger('id')->primary();
-            $table->unsignedBigInteger('anime_id');
+            $table->increments('id');
+            $table->unsignedInteger('anime_id');
+            $table->unsignedInteger('relate_id');
             $table->string('title');
             $table->string('title_english');
             $table->string('alias');

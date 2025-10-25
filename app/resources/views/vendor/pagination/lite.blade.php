@@ -2,9 +2,9 @@
     <span class="pagination-prev">
         @if (request()->integer('page') <= 1)
             <span>&laquo; Предыдущая</span>
-        @else
-            <a href="{{ request()->integer('page') - 1 }}" rel="prev">&laquo; Предыдущая</a>
-        @endif
+    @else
+    <a href="?page={{ request()->integer('page') - 1 }}" rel="prev">&laquo; Предыдущая</a>
+    @endif
     </span>
 
     <span class="pagination-info">

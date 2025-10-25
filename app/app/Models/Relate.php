@@ -12,6 +12,7 @@ class Relate extends Model
     protected $fillable = [
         'id',
         'anime_id',
+        'relate_id',
         'title',
         'title_english',
         'alias',

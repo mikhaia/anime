@@ -17,8 +17,6 @@ return new class extends Migration {
             $table->string('quality');
             $table->string('url');
             $table->timestamps();
-
-            $table->unique(['episode_id', 'quality']);
         });
     }
 
