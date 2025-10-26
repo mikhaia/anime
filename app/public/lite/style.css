@@ -171,3 +171,20 @@ body {
     color: #000;
     opacity: 1;
 }
+
+select, button, .tag {
+    padding: 10px;
+    border-radius: 5px;
+}
+
+button {
+    cursor: pointer;
+}
+
+.tag {
+    background-color: #eee;
+    color: #333;
+    text-decoration: none;
+    display: inline-block;
+    margin: 5px;
+}

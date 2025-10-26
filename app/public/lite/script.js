@@ -55,6 +55,8 @@ $(document).on('keydown', function (e) {
     case 'ArrowDown': down(); break;
     case 'ArrowLeft': left(); break;
     case 'ArrowRight': right(); break;
+    case 'PageUp': prev(); break;
+    case 'PageDown': next(); break;
   }
 
   if (isTV) {
@@ -66,6 +68,14 @@ $(document).on('keydown', function (e) {
     };
   }
 });
+
+function prev() {
+  $('.pagination-prev a').click();
+}
+
+function next() {
+  $('.pagination-next a').click();
+}
 
 function up() {
   if (!$(':focus').length) $('.item:first').focus();

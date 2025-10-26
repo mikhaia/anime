@@ -1,7 +1,7 @@
 @extends('layouts.lite')
 
 @section('content')
-    <link rel="stylesheet" href="/lite/video.css?{{ time() }}">
+    <link rel="stylesheet" href="/lite/video.css">
 
     <div class="screen">
         <div class="title">
@@ -47,15 +47,28 @@
         </select>
     </div>
 
+    <div class="video-controls">
+        <div class="genre-list">
+            <h3>Жанры:</h3>
+            @foreach ($anime->genres as $g)
+                <a href="/genre/{{ $g->id }}" class="tag">{{ $g->name }}</a>
+            @endforeach
+        </div>
+    </div>
+
+    @php
+        $episodes = [];
+        foreach ($anime->streams as $s) {
+            $episodes[(int) $s->episode_id][(int) $s->quality] = $s->url;
+        }
+    @endphp
+
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <script>
         const video = document.getElementById('player');
         let quality;
         let episode;
-        let episodes = [];
-        @foreach ($anime->streams as $s)
-            (episodes[{{ $s->episode_id }}] ||= [])[{{ intval($s->quality) }}] = "{{ $s->url }}";
-        @endforeach
+        const episodes = JSON.parse('{!! json_encode($episodes, JSON_UNESCAPED_SLASHES) !!}');
 
         function selectVideo(url, play = false) {
             if (video.canPlayType('application/vnd.apple.mpegURL')) {
