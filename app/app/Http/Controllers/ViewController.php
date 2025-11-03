@@ -24,7 +24,8 @@ class ViewController extends Controller
             $client = app(AnilibriaClient::class);
             $release = $client->fetchDetails($request->id);
             if (!$anime) {
-                $anime = $client->updateAnime($release);
+                $client->updateAnime($release);
+                $anime = Anime::find($request->id);
             }
 
             if ($release) {

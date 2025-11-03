@@ -78,7 +78,7 @@ class ListController extends Controller
 
         $items = Anime::query()->whereIn('id', $animeIds)->paginate(24);
 
-        return view('lite.search', [
+        return view('lite.list', [
             'items' => $items,
             'page' => $page,
             'searchQuery' => $searchQuery,
@@ -106,7 +106,7 @@ class ListController extends Controller
 
     public function fav(Request $request)
     {
-        dd(Auth::user());
+        dd('Miss AUTH');
         $items = Favorite::where('user', Auth::user()->id)->get();
         dd($items);
     }

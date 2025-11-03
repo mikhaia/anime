@@ -93,10 +93,12 @@
 
             $('#select-quality').change(function() {
                 quality = parseInt($('#select-quality').val());
+                selectVideo(episodes[episode][quality]);
             });
 
             $('#select-episode').change(function() {
-                selectVideo(episodes[$(this).val()][quality]);
+                episode = parseInt($(this).val());
+                selectVideo(episodes[episode][quality]);
             });
 
             $('#select-season').change(function() {
