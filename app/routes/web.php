@@ -62,3 +62,4 @@ $router->get('/genre/{genre:[0-9]+}', 'ListController@genre');
 // Lite Auth Routes
 $router->post('/login', 'UserController@login');
 $router->post('/create', 'UserController@create');
+$router->get('/test', 'UserController@test');

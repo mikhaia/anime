@@ -57,4 +57,9 @@ class UserController extends Controller
             'success' => true,
         ]);
     }
+
+    public function test()
+    {
+        dd(Auth::user());
+    }
 }
