@@ -1,6 +1,7 @@
 <?php
 
-require_once __DIR__.'/../vendor/autoload.php';
+require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/../helpers.php';
 
 (new Laravel\Lumen\Bootstrap\LoadEnvironmentVariables(
     dirname(__DIR__)
@@ -61,6 +62,7 @@ $app->singleton(
 
 $app->configure('app');
 $app->configure('database');
+$app->configure('session');
 
 /*
 |--------------------------------------------------------------------------
@@ -74,12 +76,14 @@ $app->configure('database');
 */
 
 $app->middleware([
+    Illuminate\Session\Middleware\StartSession::class,
     App\Http\Middleware\StartSession::class,
 ]);
 
-// $app->routeMiddleware([
-//     'auth' => App\Http\Middleware\Authenticate::class,
-// ]);
+$app->routeMiddleware([
+    // 'auth' => App\Http\Middleware\Authenticate::class,
+    'csrf' => Laravel\Lumen\Http\Middleware\VerifyCsrfToken::class,
+]);
 
 /*
 |--------------------------------------------------------------------------
@@ -95,8 +99,11 @@ $app->middleware([
 $app->configure('view');
 $app->register(Illuminate\View\ViewServiceProvider::class);
 $app->register(Illuminate\Hashing\HashServiceProvider::class);
+$app->register(Illuminate\Cookie\CookieServiceProvider::class);
+$app->register(Illuminate\Session\SessionServiceProvider::class);
 $app->alias('view', Illuminate\Contracts\View\Factory::class);
 $app->alias('view', Illuminate\Contracts\View\View::class);
+$app->alias('session', Illuminate\Session\Store::class);
 
 $app->register(App\Providers\AppServiceProvider::class);
 // $app->register(App\Providers\AuthServiceProvider::class);
@@ -116,7 +123,7 @@ $app->register(App\Providers\AppServiceProvider::class);
 $app->router->group([
     'namespace' => 'App\Http\Controllers',
 ], function ($router) {
-    require __DIR__.'/../routes/web.php';
+    require __DIR__ . '/../routes/web.php';
 });
 
 return $app;

@@ -14,6 +14,7 @@
 </head>
 
 <body>
+    @include('lite.user')
     <div class="header">
         <button id="menu-toggle" class="menu-toggle" title="Открыть меню">
             <svg width="45" height="45" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -24,7 +25,7 @@
         <nav class="nav">
             <ul id="main-nav">
                 <li class="has-submenu">
-                    <a href="#">
+                    <a href="#" class="open-auth-modal">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor"
                             viewBox="0 0 24 24">
                             <path fill-rule="evenodd"
@@ -84,8 +85,7 @@
         </nav>
     </div>
     @yield('content')
-    <script src="https://code.jquery.com/jquery-3.7.1.slim.min.js"
-        integrity="sha256-kmHvs0B+OpCW5GVHUNjv9rOmY0IvSIRcf7zGUDTDQM8=" crossorigin="anonymous"></script>
+    <script src="/lite/jquery.js"></script>
     <script>
         const version = Date.now();
         document.write(`<script src="/lite/script.js?${version}"><\/script>`);

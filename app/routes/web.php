@@ -58,3 +58,6 @@ $router->get('/search', 'ListController@search');
 $router->get('/anime/{id}', 'ViewController@show');
 $router->get('/fav', 'ListController@fav');
 $router->get('/genre/{genre:[0-9]+}', 'ListController@genre');
+
+// Lite Auth Routes
+$router->post('/login', 'UserController@login');

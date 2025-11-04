@@ -4,118 +4,74 @@ namespace App\Support;
 
 class Session
 {
-    protected static bool $flashInitialized = false;
-
     public static function start(): void
     {
-        self::extendLifetime();
-
-        if (session_status() === PHP_SESSION_NONE) {
-            if (headers_sent()) {
-                if (!isset($_SESSION)) {
-                    $_SESSION = [];
-                }
-            } else {
-                session_start();
-            }
+        if (!app()->bound('session')) {
+            throw new \RuntimeException('Session store is not bound to the container.');
         }
 
-        if (!isset($_SESSION['_flash'])) {
-            $_SESSION['_flash'] = [
-                'current' => [],
-                'next' => [],
-            ];
-        } else {
-            $_SESSION['_flash'] = array_merge([
-                'current' => [],
-                'next' => [],
-            ], $_SESSION['_flash']);
-        }
+        /** @var \Illuminate\Session\Store $store */
+        $store = app('session');
 
-        if (!self::$flashInitialized) {
-            $_SESSION['_flash']['current'] = $_SESSION['_flash']['next'] ?? [];
-            $_SESSION['_flash']['next'] = [];
-            self::$flashInitialized = true;
+        if (! $store->isStarted()) {
+            $store->start();
         }
     }
 
     public static function put(string $key, $value): void
     {
-        $_SESSION[$key] = $value;
+        self::start();
+
+        app('session')->put($key, $value);
     }
 
     public static function get(string $key, $default = null)
     {
-        return $_SESSION[$key] ?? $default;
+        self::start();
+
+        return app('session')->get($key, $default);
     }
 
     public static function forget(string $key): void
     {
-        unset($_SESSION[$key]);
+        self::start();
+
+        app('session')->forget($key);
     }
 
     public static function has(string $key): bool
     {
-        return array_key_exists($key, $_SESSION);
+        self::start();
+
+        return app('session')->has($key);
     }
 
     public static function flash(string $key, $value): void
     {
-        self::ensureFlashInitialized();
-        $_SESSION['_flash']['next'][$key] = $value;
+        self::start();
+
+        app('session')->flash($key, $value);
     }
 
     public static function getFlash(string $key, $default = null)
     {
-        self::ensureFlashInitialized();
-        return $_SESSION['_flash']['current'][$key] ?? $default;
+        self::start();
+
+        return app('session')->get($key, $default);
     }
 
     public static function allFlashes(): array
     {
-        self::ensureFlashInitialized();
-        return $_SESSION['_flash']['current'];
-    }
+        self::start();
 
-    protected static function ensureFlashInitialized(): void
-    {
-        if (!isset($_SESSION['_flash'])) {
-            $_SESSION['_flash'] = [
-                'current' => [],
-                'next' => [],
-            ];
-        }
-        if (!self::$flashInitialized) {
-            $_SESSION['_flash']['current'] = $_SESSION['_flash']['next'] ?? [];
-            $_SESSION['_flash']['next'] = [];
-            self::$flashInitialized = true;
-        }
-    }
+        $store = app('session');
+        $keys = $store->get('_flash.old', []);
+        $flashes = [];
 
-    protected static function extendLifetime(): void
-    {
-        $lifetimeSeconds = 60 * 60 * 24 * 365;
-
-        ini_set('session.gc_maxlifetime', (string) $lifetimeSeconds);
-        ini_set('session.cookie_lifetime', (string) $lifetimeSeconds);
-
-        $params = [
-            'lifetime' => $lifetimeSeconds,
-            'path' => '/',
-            'httponly' => true,
-            'samesite' => 'Lax',
-        ];
-
-        if (session_status() === PHP_SESSION_ACTIVE) {
-            $cookie = $params;
-            unset($cookie['lifetime']);
-            $cookie['expires'] = time() + $lifetimeSeconds;
-
-            setcookie(session_name(), session_id(), $cookie);
-
-            return;
+        foreach ($keys as $key) {
+            $flashes[$key] = $store->get($key);
         }
 
-        session_set_cookie_params($params);
+        return $flashes;
     }
 }

@@ -1,0 +1,76 @@
+.overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 100;
+    display: none;
+}
+
+.overlay.show {
+    display: flex;
+}
+
+.modal {
+    margin: auto;
+    background: white;
+    color: #222;
+    padding: 20px;
+    border-radius: 10px;
+    min-width: 300px;
+}
+
+.modal h3 {
+    margin: 0;
+    padding-bottom: 15px;
+}
+
+.close {
+    float: right;
+    text-decoration: none;
+    font-size: 20px;
+    background: #ddd;
+    width: 40px;
+    line-height: 40px;
+    text-align: center;
+    border-radius: 50%;
+    color: #222;
+    margin-right: -10px;
+    margin-top: -10px;
+}
+
+.field {
+    margin-bottom: 15px;
+}
+
+.field label {
+    display: block;
+    margin-bottom: 5px;
+}
+
+.field input {
+    padding: 10px 20px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.form button {
+    background: #007BFF;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.form .bottom {
+    display: flex;
+    justify-content: space-between;
+}
+
+.error-message {
+    color: crimson;
+    margin-bottom: 15px;
+    font-style: italic;
+}
