@@ -1,16 +1,16 @@
-document.addEventListener('DOMContentLoaded', function() {
-    var $form = $('.modal .form');
-    $form.on('submit', function (event) {
-        event.preventDefault();
+document.addEventListener('DOMContentLoaded', function () {
 
-        $.post($form.attr('action'), $form.serialize()).always(function (response) {
+    $('.modal .form').on('submit', function (event) {
+        event.preventDefault();
+        $.post($(this).attr('action'), $(this).serialize(), function (response) {
             if (response.success) {
-                console.log('Login successful');
+                location.reload();
             } else {
                 $('.error-message').text(response.message);
             }
         });
     });
+
 
     $('.modal .close').on('click', function (event) {
         event.preventDefault();
@@ -20,5 +20,13 @@ document.addEventListener('DOMContentLoaded', function() {
     $('.open-auth-modal').on('click', function (event) {
         event.preventDefault();
         $('.overlay').addClass('show');
+    });
+
+    $('.create-user').on('click', function () {
+        $('.user-register').show();
+    });
+
+    $('.back-to-login').on('click', function () {
+        $loginBlock.show();
     });
 });
