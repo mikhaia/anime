@@ -5,7 +5,7 @@
         <h2 class="search-title">Результаты поиска по "{{ $searchQuery }}"</h2>
     @endif
 
-    @if (!$items->count())
+    @if (!count($items) && !isset($searchQuery))
         <h2 class="search-title"><i>Нету ни одного такого аниме</i> 😭</h2>
     @endif
 

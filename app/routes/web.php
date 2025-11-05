@@ -12,7 +12,8 @@ use App\Http\Controllers\WatchController;
 use App\Http\Controllers\WatchProgressController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', [HomeController::class, 'index']);
+// Route::get('/', [HomeController::class, 'index']);
+Route::get('/', [ListController::class, 'search']);
 Route::get('/list', [HomeController::class, 'list']);
 Route::get('/details', fn() => view('details'));
 
