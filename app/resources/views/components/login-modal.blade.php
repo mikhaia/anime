@@ -29,6 +29,7 @@
                         <p class="text-sm text-slate-300">Введите свои данные, чтобы продолжить и открыть доступ к персональным рекомендациям.</p>
                     </div>
                     <form class="space-y-5" data-login-form method="POST" action="{{ url('/login') }}">
+                        @csrf
                         <input type="hidden" name="redirect" value="{{ $loginRedirect ?? request()->fullUrl() }}">
                         <div class="space-y-2 text-left">
                             <label class="block text-sm font-medium text-slate-200" for="login-email">Email</label>

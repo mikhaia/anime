@@ -8,12 +8,9 @@ use App\Support\AnilibriaClient;
 use App\Support\PosterStorage;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Arr;
-use Laravel\Lumen\Testing\DatabaseMigrations;
 
 class AnimeCatalogCacheTest extends TestCase
 {
-    use DatabaseMigrations;
-
     private object $clientStub;
 
     protected function setUp(): void
@@ -68,8 +65,8 @@ class AnimeCatalogCacheTest extends TestCase
         $this->clientStub = $client;
         $this->app->instance(AnilibriaClient::class, $client);
 
-        $posterStorage = new class {
-            public function store($source, $existingPoster, $existingRemote, $animeId)
+        $posterStorage = new class extends PosterStorage {
+            public function store(?string $source, ?string $existingPoster, ?string $existingRemote, int $animeId): ?string
             {
                 if (!is_string($source) || trim($source) === '') {
                     return $existingPoster;
@@ -87,7 +84,7 @@ class AnimeCatalogCacheTest extends TestCase
                 return sprintf('data/posters/%d-test.jpg', (int) $animeId);
             }
 
-            public function resolvePosterUrl($source, $existingRemote)
+            public function resolvePosterUrl(?string $source, ?string $existingRemote): ?string
             {
                 if (!is_string($source) || trim($source) === '') {
                     return $existingRemote;
@@ -101,7 +98,7 @@ class AnimeCatalogCacheTest extends TestCase
                 return $existingRemote;
             }
 
-            public function buildPublicUrl($poster)
+            public function buildPublicUrl(?string $poster): ?string
             {
                 if (!is_string($poster) || trim($poster) === '') {
                     return null;
@@ -118,9 +115,9 @@ class AnimeCatalogCacheTest extends TestCase
 
     public function test_catalog_response_is_cached(): void
     {
-        $this->get('/api/catalog/top');
+        $response = $this->get('/api/catalog/top');
 
-        $this->seeStatusCode(200);
+        $response->assertOk();
 
         $cache = AnimeCatalogCache::query()
             ->where('category', 'top')
@@ -156,11 +153,11 @@ class AnimeCatalogCacheTest extends TestCase
 
         $initialCalls = $this->clientStub->calls;
 
-        $this->get('/api/catalog/new');
+        $response = $this->get('/api/catalog/new');
 
-        $this->seeStatusCode(200);
+        $response->assertOk();
 
-        $payload = json_decode($this->response->getContent(), true);
+        $payload = $response->json();
         $this->assertSame([202], Arr::pluck($payload['data'], 'id'));
         $this->assertTrue((bool) Arr::get($payload, 'meta.cached'));
         $this->assertTrue((bool) Arr::get($payload, 'meta.has_next_page'));

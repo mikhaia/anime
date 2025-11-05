@@ -11,9 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('anime_genre', function (Blueprint $table) {
-            $table->dropForeign('anime_genre_genre_id_foreign');
-        });
+        if (Schema::getConnection()->getDriverName() !== 'sqlite') {
+            Schema::table('anime_genre', function (Blueprint $table) {
+                $table->dropForeign('anime_genre_genre_id_foreign');
+            });
+        }
     }
 
     /**
@@ -21,11 +23,13 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('anime_genre', function (Blueprint $table) {
-            $table->foreign('genre_id')
-                ->references('id')
-                ->on('genres')
-                ->cascadeOnDelete();
-        });
+        if (Schema::getConnection()->getDriverName() !== 'sqlite') {
+            Schema::table('anime_genre', function (Blueprint $table) {
+                $table->foreign('genre_id')
+                    ->references('id')
+                    ->on('genres')
+                    ->cascadeOnDelete();
+            });
+        }
     }
 };

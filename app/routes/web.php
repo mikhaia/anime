@@ -1,65 +1,51 @@
 <?php
 
-use App\Support\Auth;
-use Illuminate\Http\Request;
+use App\Http\Controllers\AnimeController;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\FavoriteController;
+use App\Http\Controllers\HomeController;
+use App\Http\Controllers\ListController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\ViewController;
+use App\Http\Controllers\WatchController;
+use App\Http\Controllers\WatchProgressController;
+use Illuminate\Support\Facades\Route;
 
-/** @var \Laravel\Lumen\Routing\Router $router */
+Route::get('/', [HomeController::class, 'index']);
+Route::get('/list', [HomeController::class, 'list']);
+Route::get('/details', fn () => view('details'));
 
-/*
-|--------------------------------------------------------------------------
-| Application Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register all of the routes for an application.
-| It is a breeze. Simply tell Lumen the URIs it should respond to
-| and give it the Closure to call when that URI is requested.
-|
-*/
+Route::get('/profile', [ProfileController::class, 'show']);
+Route::post('/profile', [ProfileController::class, 'update']);
 
-/*
-$router->get('/', function () use ($router) {
-    return $router->app->version();
-});
-*/
+Route::get('/watch/{identifier}', [WatchController::class, 'show']);
 
-$router->get('/', 'HomeController@index');
-
-$router->get('/list', 'HomeController@list');
-
-$router->get('/details', function () {
-    return view('details')->render();
+Route::prefix('api')->group(function () {
+    Route::get('catalog/{category}', [AnimeController::class, 'catalog']);
+    Route::get('anime/search', [AnimeController::class, 'search']);
+    Route::get('anime/suggestions', [AnimeController::class, 'suggestions']);
 });
 
-$router->get('/profile', 'ProfileController@show');
-$router->post('/profile', 'ProfileController@update');
+Route::get('/register', [AuthController::class, 'showRegister']);
+Route::post('/register', [AuthController::class, 'register']);
+Route::post('/login', [AuthController::class, 'login']);
+Route::post('/logout', [AuthController::class, 'logout']);
+Route::get('/switch-user', [AuthController::class, 'switchUser']);
+Route::post('/switch-user/login', [AuthController::class, 'loginFromDevice']);
+Route::post('/favorites', [FavoriteController::class, 'store']);
+Route::delete('/favorites/{animeId}', [FavoriteController::class, 'destroy'])
+    ->whereNumber('animeId');
+Route::post('/watch-progress', [WatchProgressController::class, 'store']);
 
-$router->get('/watch/{identifier}', 'WatchController@show');
+Route::get('/new', [ListController::class, 'new']);
+Route::get('/top', [ListController::class, 'top']);
+Route::get('/search', [ListController::class, 'search']);
+Route::get('/anime/{id}', [ViewController::class, 'show']);
+Route::get('/fav', [ListController::class, 'fav']);
+Route::get('/genre/{genre}', [ListController::class, 'genre'])
+    ->whereNumber('genre');
 
-$router->group(['prefix' => 'api'], function () use ($router) {
-    $router->get('catalog/{category}', 'AnimeController@catalog');
-    $router->get('anime/search', 'AnimeController@search');
-    $router->get('anime/suggestions', 'AnimeController@suggestions');
-});
-
-$router->get('/register', 'AuthController@showRegister');
-$router->post('/register', 'AuthController@register');
-$router->post('/login', 'AuthController@login');
-$router->post('/logout', 'AuthController@logout');
-$router->get('/switch-user', 'AuthController@switchUser');
-$router->post('/switch-user/login', 'AuthController@loginFromDevice');
-$router->post('/favorites', 'FavoriteController@store');
-$router->delete('/favorites/{animeId:[0-9]+}', 'FavoriteController@destroy');
-$router->post('/watch-progress', 'WatchProgressController@store');
-
-// Lite Routes
-$router->get('/new', 'ListController@new');
-$router->get('/top', 'ListController@top');
-$router->get('/search', 'ListController@search');
-$router->get('/anime/{id}', 'ViewController@show');
-$router->get('/fav', 'ListController@fav');
-$router->get('/genre/{genre:[0-9]+}', 'ListController@genre');
-
-// Lite Auth Routes
-$router->post('/login', 'UserController@login');
-$router->post('/create', 'UserController@create');
-$router->get('/test', 'UserController@test');
+Route::post('/lite/login', [UserController::class, 'login']);
+Route::post('/lite/create', [UserController::class, 'create']);
+Route::get('/test', [UserController::class, 'test']);

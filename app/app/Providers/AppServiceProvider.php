@@ -14,7 +14,7 @@ class AppServiceProvider extends ServiceProvider
      *
      * @return void
      */
-    public function register()
+    public function register(): void
     {
         $this->app->singleton(AnilibriaClient::class, function (): AnilibriaClient {
             return new AnilibriaClient();

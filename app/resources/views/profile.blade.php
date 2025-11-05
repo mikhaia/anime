@@ -29,6 +29,7 @@
             </div>
             <div>
                 <form class="space-y-6" method="POST" action="{{ url('/profile') }}" enctype="multipart/form-data">
+                    @csrf
                     @if(!empty($success))
                         <div class="rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-5 py-4 text-sm text-emerald-200">
                             {{ $success }}

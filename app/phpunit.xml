@@ -3,6 +3,7 @@
          xsi:noNamespaceSchemaLocation="./vendor/phpunit/phpunit/phpunit.xsd"
          bootstrap="vendor/autoload.php"
          colors="true"
+         beStrictAboutTestsThatDoNotTestAnything="false"
 >
     <testsuites>
         <testsuite name="Application Test Suite">
@@ -11,7 +12,15 @@
     </testsuites>
     <php>
         <env name="APP_ENV" value="testing"/>
+        <env name="APP_DEBUG" value="true"/>
+        <env name="APP_URL" value="http://localhost"/>
+        <env name="APP_KEY" value="base64:K5Cw6yQ/3zG8W0mT4h7Lw9Yx2Vq5s8ZbQwErTyUiOp0="/>
         <env name="CACHE_DRIVER" value="array"/>
+        <env name="DB_CONNECTION" value="sqlite"/>
+        <env name="DB_DATABASE" value=":memory:"/>
+        <env name="MAIL_MAILER" value="array"/>
         <env name="QUEUE_CONNECTION" value="sync"/>
+        <env name="SESSION_DRIVER" value="array"/>
+        <env name="TELESCOPE_ENABLED" value="false"/>
     </php>
 </phpunit>

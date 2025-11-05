@@ -37,6 +37,7 @@
                         @php $user = $login->user; @endphp
                         @continue(!$user)
                         <form method="POST" action="{{ url('/switch-user/login') }}" class="group">
+                            @csrf
                             <input type="hidden" name="login_id" value="{{ $login->getKey() }}">
                             <input type="hidden" name="redirect" value="{{ $redirectValue }}">
                             <button

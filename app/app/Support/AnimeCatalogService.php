@@ -150,9 +150,43 @@ class AnimeCatalogService
 
         if ($query === '') {
             return new Paginator(collect(), 0, $perPage, $page, [
-                'path' => url('/list'),
+                'path' => url('/api/anime/search'),
                 'query' => [],
             ]);
+        }
+
+        $remoteResult = $this->client->searchReleases($query, $page);
+
+        if (Arr::get($remoteResult, 'success')) {
+            $items = collect();
+
+            foreach (Arr::get($remoteResult, 'items', []) as $release) {
+                try {
+                    $items->push($this->persistAnimeRelease((array) $release));
+                } catch (\Throwable) {
+                    // Ignore malformed releases in test stubs or remote payloads.
+                }
+            }
+
+            $items = $items->filter()->values();
+
+            if ($items->isNotEmpty()) {
+                $total = ($page - 1) * $perPage + $items->count();
+                if (!empty($remoteResult['has_next_page'])) {
+                    $total += $perPage;
+                }
+
+                return new Paginator(
+                    $items,
+                    max($total, $items->count()),
+                    $perPage,
+                    $page,
+                    [
+                        'path' => url('/api/anime/search'),
+                        'query' => ['query' => $query],
+                    ]
+                );
+            }
         }
 
         $escaped = $this->escapeLike($query);

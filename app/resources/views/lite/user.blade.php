@@ -6,7 +6,7 @@
         <div class="user-login">
             <h3>Войти</h3>
             <div class="error-message" data-error="login"></div>
-            <form method="POST" action="/login" class="form">
+            <form method="POST" action="{{ url('/lite/login') }}" class="form">
                 @csrf
                 <div class="field">
                     <label for="login-name">Имя пользователя или email:</label>
@@ -26,7 +26,7 @@
         <div class="user-register">
             <h3>Создать пользователя</h3>
             <div class="error-message" data-error="register"></div>
-            <form method="POST" action="/create" class="form">
+            <form method="POST" action="{{ url('/lite/create') }}" class="form">
                 @csrf
                 <div class="field">
                     <label for="register-name">Имя пользователя:</label>

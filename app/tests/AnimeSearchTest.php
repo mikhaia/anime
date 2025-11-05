@@ -6,12 +6,8 @@ use App\Models\Anime;
 use App\Support\AnilibriaClient;
 use App\Support\PosterStorage;
 use Illuminate\Support\Arr;
-use Laravel\Lumen\Testing\DatabaseMigrations;
-
 class AnimeSearchTest extends TestCase
 {
-    use DatabaseMigrations;
-
     private object $clientStub;
     private object $posterStorageStub;
 
@@ -77,8 +73,8 @@ class AnimeSearchTest extends TestCase
         $this->clientStub = $client;
         $this->app->instance(AnilibriaClient::class, $client);
 
-        $posterStorage = new class {
-            public function store($source, $existingPoster, $existingRemote, $animeId)
+        $posterStorage = new class extends PosterStorage {
+            public function store(?string $source, ?string $existingPoster, ?string $existingRemote, int $animeId): ?string
             {
                 if (!is_string($source) || trim($source) === '') {
                     return $existingPoster;
@@ -96,7 +92,7 @@ class AnimeSearchTest extends TestCase
                 return sprintf('data/posters/%d-test.jpg', (int) $animeId);
             }
 
-            public function resolvePosterUrl($source, $existingRemote)
+            public function resolvePosterUrl(?string $source, ?string $existingRemote): ?string
             {
                 if (!is_string($source) || trim($source) === '') {
                     return $existingRemote;
@@ -110,7 +106,7 @@ class AnimeSearchTest extends TestCase
                 return $existingRemote;
             }
 
-            public function buildPublicUrl($poster)
+            public function buildPublicUrl(?string $poster): ?string
             {
                 if (!is_string($poster) || trim($poster) === '') {
                     return null;
@@ -128,11 +124,11 @@ class AnimeSearchTest extends TestCase
 
     public function test_search_results_are_persisted(): void
     {
-        $this->get('/api/anime/search?query=spy');
+        $response = $this->get('/api/anime/search?query=spy');
 
-        $this->seeStatusCode(200);
+        $response->assertOk();
 
-        $payload = json_decode($this->response->getContent(), true, 512, JSON_THROW_ON_ERROR);
+        $payload = $response->json();
 
         $this->assertSame([555], Arr::pluck($payload['data'], 'id'));
         $this->assertTrue((bool) Arr::get($payload, 'meta.has_next_page'));
@@ -185,9 +181,9 @@ class AnimeSearchTest extends TestCase
             ],
         ];
 
-        $this->get('/api/anime/search?query=spy');
+        $response = $this->get('/api/anime/search?query=spy');
 
-        $this->seeStatusCode(200);
+        $response->assertOk();
 
         $anime = Anime::query()->find(555);
         $this->assertNotNull($anime);

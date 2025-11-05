@@ -10,6 +10,7 @@
     <section class="page-content page-auth">
         <div class="overflow-hidden rounded-2xl border border-slate-700 bg-slate-900 shadow-2xl">
             <form class="space-y-6 p-8" method="POST" action="{{ url('/register') }}">
+                @csrf
                 <input type="hidden" name="redirect" value="/">
                 <div class="space-y-2">
                     <label class="block text-sm font-semibold text-slate-200" for="register-name">Имя</label>
