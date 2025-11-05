@@ -107,7 +107,7 @@ class ListController extends Controller
     public function fav(Request $request)
     {
 
-        $animeIds = Favorite::where('user_id', Auth::user()->id)->get();
+        $animeIds = Favorite::where('user_id', Auth::id())->pluck('anime_id');
         $items = Anime::query()->whereIn('id', $animeIds)->paginate(24);
         return view('lite.list', [
             'items' => $items,

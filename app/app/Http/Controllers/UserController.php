@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Favorite;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -61,5 +62,29 @@ class UserController extends Controller
     public function test()
     {
         dd(Auth::user());
+    }
+
+    public function favorite(Request $request): JsonResponse
+    {
+        $animeId = (int) $request->input('anime_id');
+        $favorite = filter_var($request->input('favorite'), FILTER_VALIDATE_BOOLEAN);
+        $user = Auth::user();
+
+        if ($favorite) {
+            Favorite::firstOrCreate([
+                'user_id' => $user->id,
+                'anime_id' => $animeId,
+            ]);
+        } else {
+            Favorite::where('user_id', $user->id)
+                ->where('anime_id', $animeId)
+                ->delete();
+        }
+
+        return response()->json([
+            'success' => true,
+            'favorited' => (bool) $favorite,
+            'message' => $favorite ? 'Добавлено в избранное' : 'Удалено из избранного',
+        ]);
     }
 }

@@ -7,6 +7,8 @@ use App\Models\Anime;
 use App\Models\Episode;
 use App\Models\Relate;
 use App\Support\AnilibriaClient;
+use App\Models\Favorite;
+use Illuminate\Support\Facades\Auth;
 
 
 class ViewController extends Controller
@@ -42,9 +44,18 @@ class ViewController extends Controller
             $qualities[$stream->quality] = $stream->quality;
         }
 
+        $favorited = false;
+        $currentUser = Auth::user();
+        if ($currentUser) {
+            $favorited = Favorite::where('user_id', $currentUser->id)
+                ->where('anime_id', $anime->id)
+                ->exists();
+        }
+
         return view('lite.watch', [
             'anime' => $anime,
-            'qualities' => $qualities
+            'qualities' => $qualities,
+            'favorited' => $favorited,
         ]);
     }
 

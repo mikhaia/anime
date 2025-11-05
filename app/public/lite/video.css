@@ -45,3 +45,14 @@
     justify-content: space-between;
     padding: 20px;
 }
+
+.fav-toggle {
+    color: #fff;
+    text-decoration: none;
+    position: relative;
+    bottom: -5px;
+}
+
+.fav-toggle.favorited  {
+    color: #ff4081;
+}

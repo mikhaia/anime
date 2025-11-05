@@ -6,7 +6,17 @@
     <div class="screen">
         <div class="title">
             <div><button onclick="window.history.back()">&laquo; Назад</button></div>
-            <h1>{{ $anime->title }}</h1>
+            <h1>
+                {{ $anime->title }}
+                <a href="#" class="fav-toggle @if ($favorited) favorited @endif"
+                    data-anime-id="{{ $anime->id }}" title="Добавить в избранное">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor"
+                        viewBox="0 0 24 24">
+                        <path
+                            d="M12 4.248c-3.148-5.402-12-3.825-12 2.944 0 4.661 5.571 9.427 12 15.808 6.429-6.381 12-11.147 12-15.808 0-6.769-8.852-8.346-12-2.944z" />
+                    </svg>
+                </a>
+            </h1>
         </div>
         <div class="video">
             <a class="video-cover"
@@ -117,6 +127,22 @@
                         selectVideo(first[quality], true);
                     }
                 }
+            });
+
+            $('.fav-toggle').click(function(e) {
+                e.preventDefault();
+                const animeId = $(this).data('anime-id');
+                const toggle = $(this);
+                $.post('/favorite', {
+                    anime_id: animeId,
+                    favorite: !toggle.hasClass('favorited')
+                }, function(data) {
+                    if (data.success) {
+                        toggle.toggleClass('favorited', data.favorited);
+                    } else {
+                        alert('Ошибка при обновлении избранного');
+                    }
+                });
             });
         });
     </script>

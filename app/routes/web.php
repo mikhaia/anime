@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index']);
 Route::get('/list', [HomeController::class, 'list']);
-Route::get('/details', fn () => view('details'));
+Route::get('/details', fn() => view('details'));
 
 Route::get('/profile', [ProfileController::class, 'show']);
 Route::post('/profile', [ProfileController::class, 'update']);
@@ -49,3 +49,4 @@ Route::get('/genre/{genre}', [ListController::class, 'genre'])
 Route::post('/lite/login', [UserController::class, 'login']);
 Route::post('/lite/create', [UserController::class, 'create']);
 Route::get('/test', [UserController::class, 'test']);
+Route::post('/favorite', [UserController::class, 'favorite']);
