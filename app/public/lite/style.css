@@ -1,9 +1,19 @@
 body {
-    background-color: #333;
+    background: #333;
     color: #fff;
     font-family: Arial, Helvetica, sans-serif;
     margin: 0;
     padding: 0;
+}
+
+body::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: url('anime.jpg') no-repeat center center;
+  background-size: cover;
+  opacity: 0.4;
+  z-index: -1;
 }
 
 .hidden {
