@@ -32,6 +32,9 @@ class ViewController extends Controller
                 $this->syncEpisodes($anime, $release['episodes']);
                 $this->syncRelated($anime->id, $release['related']);
             }
+
+            $anime->refresh();
+            $anime->load(['episodes', 'streams', 'relates']);
         }
 
         $qualities = [];
