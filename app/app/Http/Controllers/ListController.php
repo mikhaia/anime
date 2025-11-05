@@ -8,7 +8,7 @@ use App\Models\Anime;
 use App\Models\Favorite;
 use App\Models\Genre;
 use App\Support\AnilibriaClient;
-use App\Support\Auth;
+use Illuminate\Support\Facades\Auth;
 
 class ListController extends Controller
 {
@@ -106,9 +106,12 @@ class ListController extends Controller
 
     public function fav(Request $request)
     {
-        dd('Miss AUTH');
-        $items = Favorite::where('user', Auth::user()->id)->get();
-        dd($items);
+
+        $animeIds = Favorite::where('user_id', Auth::user()->id)->get();
+        $items = Anime::query()->whereIn('id', $animeIds)->paginate(24);
+        return view('lite.list', [
+            'items' => $items,
+        ]);
     }
 
     private function latinToCyr($s)
