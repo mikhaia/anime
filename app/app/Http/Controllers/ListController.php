@@ -96,7 +96,7 @@ class ListController extends Controller
         $response = $client->fetchLite($cacheCategory, $page, 24, '', [$genreId]);
         $animeIds = $response['animeIds'] ?? [];
 
-        $items = Anime::query()->whereIn('id', $animeIds)->paginate(24);
+        $items = Anime::query()->whereIn('id', $animeIds)->limit(24)->get();
 
         return view('lite.list', [
             'items' => $items,
