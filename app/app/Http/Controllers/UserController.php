@@ -16,7 +16,7 @@ class UserController extends Controller
 {
     public function index(Request $request)
     {
-        $logins = json_decode(Cookie::get('users'), true);
+        $logins = json_decode(Cookie::get('users') ?? '[]', true);
         $emails = array_keys($logins);
         $users = User::whereIn('email', $emails)->get(['id', 'name', 'email', 'avatar_path']);
 
@@ -27,7 +27,7 @@ class UserController extends Controller
 
     public function switch(Request $request, $id)
     {
-        $logins = json_decode(Cookie::get('users'), true);
+        $logins = json_decode(Cookie::get('users') ?? '[]', true);
         $emails = array_keys($logins);
 
         $user = User::whereIn('email', $emails)->where('id', $id)->first();
