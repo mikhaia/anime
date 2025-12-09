@@ -87,11 +87,14 @@
 .user-list {
     background: #fff;
     color: #222;
-    padding: 20px;
+    padding: 15px 10px;
     border-radius: 10px;
     display: flex;
     margin: auto;
-    gap: 20px;
+}
+
+.user-list > div {
+    margin: 0 15px;
 }
 
 .user-list a {
