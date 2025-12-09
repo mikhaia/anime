@@ -56,3 +56,9 @@
 .fav-toggle.favorited  {
     color: #ff4081;
 }
+
+.episode-navigation {
+    margin-top: 10px;
+    display: flex;
+    justify-content: space-between;
+}

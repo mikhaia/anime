@@ -34,28 +34,39 @@
         </div>
     </div>
 
-    {{-- {{ dd($anime->streams) }} --}}
     <div class="video-controls">
-        <select id="select-episode">
-            <option value="">Выбрать серию</option>
-            @foreach ($anime->episodes as $episode)
-                <option value="{{ $episode->number }}">
-                    {{ $episode->number }}.
-                    {{ $episode->title ?: 'Серия ' . $episode->number }}
-                </option>
-            @endforeach
-        </select>
-        <select id="select-season">
-            <option>Выбрать сезон</option>
-            @foreach ($anime->relates as $r)
-                <option value="{{ $r->relate_id }}">{{ $r->title }}</option>
-            @endforeach
-        </select>
-        <select id="select-quality">
-            @foreach ($qualities as $q)
-                <option value="{{ $q }}">{{ $q }}</option>
-            @endforeach
-        </select>
+        <div>
+            <select id="select-episode">
+                <option value="">Выбрать серию</option>
+                @foreach ($anime->episodes as $episode)
+                    <option value="{{ $episode->number }}">
+                        {{ $episode->number }}.
+                        {{ $episode->title ?: 'Серия ' . $episode->number }}
+                    </option>
+                @endforeach
+            </select>
+            @if ($anime->episodes->count() > 1)
+                <div class="episode-navigation">
+                    <button id="btn-prev-episode">Предыдущая серия</button>
+                    <button id="btn-next-episode">Следующая серия</button>
+                </div>
+            @endif
+        </div>
+        <div>
+            <select id="select-season">
+                <option>Выбрать сезон</option>
+                @foreach ($anime->relates as $r)
+                    <option value="{{ $r->relate_id }}">{{ $r->title }}</option>
+                @endforeach
+            </select>
+        </div>
+        <div>
+            <select id="select-quality">
+                @foreach ($qualities as $q)
+                    <option value="{{ $q }}">{{ $q }}</option>
+                @endforeach
+            </select>
+        </div>
     </div>
 
     <div class="video-controls">
@@ -102,6 +113,54 @@
         document.addEventListener('DOMContentLoaded', () => {
             quality = parseInt($('#select-quality').val());
 
+            function updateNavigationButtons() {
+                const selectEpisode = $('#select-episode');
+                const options = selectEpisode.find('option');
+                let currentIndex = -1;
+
+                options.each(function(index) {
+                    if ($(this).val() === selectEpisode.val()) {
+                        currentIndex = index;
+                    }
+                });
+
+                $('#btn-prev-episode').prop('disabled', currentIndex <= 1);
+
+                $('#btn-next-episode').prop('disabled', currentIndex >= options.length - 1);
+            }
+
+            function nextEpisode() {
+                const selectEpisode = $('#select-episode');
+                const options = selectEpisode.find('option');
+                let currentIndex = -1;
+
+                options.each(function(index) {
+                    if ($(this).val() === selectEpisode.val()) {
+                        currentIndex = index;
+                    }
+                });
+
+                if (currentIndex !== -1 && currentIndex < options.length - 1) {
+                    selectEpisode.prop('selectedIndex', currentIndex + 1).change();
+                }
+            }
+
+            function prevEpisode() {
+                const selectEpisode = $('#select-episode');
+                const options = selectEpisode.find('option');
+                let currentIndex = -1;
+
+                options.each(function(index) {
+                    if ($(this).val() === selectEpisode.val()) {
+                        currentIndex = index;
+                    }
+                });
+
+                if (currentIndex > 1) { // Пропускаем первый option "Выбрать серию"
+                    selectEpisode.prop('selectedIndex', currentIndex - 1).change();
+                }
+            }
+
             $('#select-quality').change(function() {
                 quality = parseInt($('#select-quality').val());
                 selectVideo(episodes[episode][quality]);
@@ -110,11 +169,26 @@
             $('#select-episode').change(function() {
                 episode = parseInt($(this).val());
                 selectVideo(episodes[episode][quality]);
+                updateNavigationButtons();
             });
 
             $('#select-season').change(function() {
                 location.href = '/anime/' + $(this).val();
             });
+
+            // Обработчики для кнопок навигации
+            $('#btn-next-episode').click(function(e) {
+                e.preventDefault();
+                nextEpisode();
+            });
+
+            $('#btn-prev-episode').click(function(e) {
+                e.preventDefault();
+                prevEpisode();
+            });
+
+            // Инициализация состояния кнопок при загрузке
+            updateNavigationButtons();
 
             $('.video-cover').click(function() {
                 $(this).hide();
