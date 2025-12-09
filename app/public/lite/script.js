@@ -129,5 +129,14 @@ function getAbove() {
   return found.length ? found : null;
 }
 
+$(document).on('click', 'a', function() {
+  const href = $(this).attr('href');
 
+  if (href && href !== '#') {
+    $('.loader').css('display', 'flex');
+  }
+});
 
+$(window).on('beforeunload pagehide', function() {
+  $('.loader').css('display', 'flex');
+});

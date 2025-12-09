@@ -23,6 +23,29 @@ body::before {
     display: none;
 }
 
+.loader {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 200;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #fff;
+    display: none;
+}
+
+.spinner {
+    animation: spin 1s linear infinite;
+    color: inherit;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
 .nav {
     background-color: #222;
 }

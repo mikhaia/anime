@@ -19,6 +19,7 @@
 </head>
 
 <body>
+    @include('lite.loader')
     @include('lite.user')
     <div class="header">
         <button id="menu-toggle" class="menu-toggle" title="Открыть меню">
