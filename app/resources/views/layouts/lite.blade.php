@@ -12,6 +12,10 @@
     <link rel="stylesheet" href="/lite/tv.css">
     <link rel="stylesheet" href="/lite/search.css">
     <link rel="stylesheet" href="/lite/chromecast.css">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="manifest" href="/site.webmanifest">
 </head>
 
 <body>
@@ -26,7 +30,7 @@
         <nav class="nav">
             <ul id="main-nav">
                 <li>{{-- class="has-submenu" --}}
-                    <a href="#" @guest class="open-auth-modal" @endguest>
+                    <a href="/users">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor"
                             viewBox="0 0 24 24">
                             <path fill-rule="evenodd"
@@ -37,7 +41,7 @@
                             @auth
                                 {{ auth()->user()->name }}
                             @else
-                                Пользователь
+                                Войти
                             @endauth
                         </span>
                     </a>

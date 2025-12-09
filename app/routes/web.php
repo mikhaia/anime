@@ -51,3 +51,6 @@ Route::post('/lite/login', [UserController::class, 'login']);
 Route::post('/lite/create', [UserController::class, 'create']);
 Route::get('/test', [UserController::class, 'test']);
 Route::post('/favorite', [UserController::class, 'favorite']);
+Route::get('/users', [UserController::class, 'index']);
+Route::get('/switch/{id}', [UserController::class, 'switch'])
+    ->whereNumber('id');

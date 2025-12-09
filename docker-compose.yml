@@ -3,7 +3,7 @@ services:
     build: ./docker/php
     container_name: neanime-app
     ports:
-      - "8080:80"           # http://localhost:8080
+      - "8080:80" # http://localhost:8080
     volumes:
       - ./app:/var/www/html
     depends_on:
@@ -26,7 +26,7 @@ services:
     volumes:
       - db_data:/var/lib/mysql
     ports:
-      - "3308:3306"         # локально если нужно подключаться (localhost:3307)
+      - "3308:3306" # локально если нужно подключаться (localhost:3307)
 
   pma:
     image: phpmyadmin:latest
@@ -38,17 +38,17 @@ services:
       PMA_PASSWORD: root
       UPLOAD_LIMIT: 256M
     ports:
-      - "8085:80"           # http://localhost:8085
+      - "8085:80" # http://localhost:8085
 
-  frontend:
-    image: node:20-alpine
-    container_name: neanime-frontend
-    working_dir: /app
-    command: sh -c "npm install && npm run dev"
-    volumes:
-      - ./app:/app
-    depends_on:
-      - app
+  # frontend:
+  #   image: node:20-alpine
+  #   container_name: neanime-frontend
+  #   working_dir: /app
+  #   command: sh -c "npm install && npm run dev"
+  #   volumes:
+  #     - ./app:/app
+  #   depends_on:
+  #     - app
 
 volumes:
   db_data:

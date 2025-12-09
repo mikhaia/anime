@@ -22,3 +22,10 @@
 .tv .nav-top {
     border-bottom: 3px solid blue;
 }
+
+.title small {
+    font-size: 14px;
+    display: block;
+    font-weight: normal;
+    font-style: italic;
+}

@@ -4,13 +4,43 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\Favorite;
+use App\Models\Login;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Cookie;
+use Illuminate\Support\Str;
 
 class UserController extends Controller
 {
+    public function index(Request $request)
+    {
+        $logins = json_decode(Cookie::get('users'), true);
+        $emails = array_keys($logins);
+        $users = User::whereIn('email', $emails)->get(['id', 'name', 'email', 'avatar_path']);
+
+        return view('lite.users', [
+            'users' => $users,
+        ]);
+    }
+
+    public function switch(Request $request, $id)
+    {
+        $logins = json_decode(Cookie::get('users'), true);
+        $emails = array_keys($logins);
+
+        $user = User::whereIn('email', $emails)->where('id', $id)->first();
+        if (!$user) {
+            return redirect('/users')
+                ->with('success', false)
+                ->with('error', 'Невозможно переключиться на данного пользователя. Авторизуйтесь заново.');
+        }
+
+        $this->auth($user);
+        return redirect('/');
+    }
+
     public function login(Request $request): JsonResponse
     {
         $name = trim($request->input('name'));
@@ -26,10 +56,11 @@ class UserController extends Controller
             ]);
         }
 
-        Auth::login($user);
+        $this->auth($user);
 
         return response()->json([
             'success' => true,
+            'message' => 'Успешный вход.',
         ]);
     }
 
@@ -56,12 +87,8 @@ class UserController extends Controller
 
         return response()->json([
             'success' => true,
+            'message' => 'Пользователь успешно создан.',
         ]);
-    }
-
-    public function test()
-    {
-        dd(Auth::user());
     }
 
     public function favorite(Request $request): JsonResponse
@@ -86,5 +113,24 @@ class UserController extends Controller
             'favorited' => (bool) $favorite,
             'message' => $favorite ? 'Добавлено в избранное' : 'Удалено из избранного',
         ]);
+    }
+
+    private function auth($user)
+    {
+        $secret = Str::random(10);
+        $loginsCookie = Cookie::get('users');
+        if (!$loginsCookie) {
+            $logins = [];
+        } else {
+            $logins = json_decode($loginsCookie, true);
+        }
+        $logins[$user->email] = $secret;
+        Cookie::queue('users', json_encode($logins), 525600); // 1 year
+        Login::create([
+            'email' => $user->email,
+            'secret' => $secret,
+        ]);
+
+        Auth::login($user);
     }
 }

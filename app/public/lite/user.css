@@ -78,3 +78,43 @@
 .user-register {
     display: none;
 }
+
+.user-screen {
+    flex: 1;
+    display: flex;
+}
+
+.user-list {
+    background: #fff;
+    color: #222;
+    padding: 20px;
+    border-radius: 10px;
+    display: flex;
+    margin: auto;
+    gap: 20px;
+}
+
+.user-list a {
+    color: #222;
+}
+
+.user-list b {
+    display: block;
+    text-align: center;
+    text-decoration: underline;
+}
+
+.user-list i {
+    color: #666;
+    font-size: 14px;
+}
+
+.user-list .avatar {
+    margin: 10px 0;
+    width: 200px;
+    height: 200px;
+    display: block;
+    border: 1px solid #666;
+    border-radius: 20px;
+    overflow: hidden;
+}
