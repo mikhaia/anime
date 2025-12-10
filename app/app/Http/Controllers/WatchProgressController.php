@@ -38,8 +38,8 @@ class WatchProgressController extends Controller
 
         $progress = WatchProgress::updateOrCreate(
             [
-                'user_id' => $user->getKey(),
-                'anime_id' => $anime->getKey(),
+                'user_id' => $user->id,
+                'anime_id' => $anime->id,
             ],
             [
                 'episode_number' => $episodeNumber,
