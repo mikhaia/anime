@@ -7,6 +7,7 @@ use App\Models\AnimeCatalogCache;
 use App\Models\Anime;
 use App\Models\Favorite;
 use App\Models\Genre;
+use App\Models\WatchProgress;
 use App\Support\AnilibriaClient;
 use Illuminate\Support\Facades\Auth;
 
@@ -60,13 +61,32 @@ class ListController extends Controller
         $page = $request->input('page', 1);
 
         if (!$searchQuery) {
-            // $items = Anime::query()->inRandomOrder()->limit(24)->get();
             $genres = Genre::all();
+
+            $watchProgress = collect();
+            $favorites = collect();
+            $currentUser = Auth::user();
+
+            if ($currentUser) {
+                $watchProgress = WatchProgress::where('user_id', $currentUser->id)
+                    ->with('anime')
+                    ->latest('updated_at')
+                    ->take(5)
+                    ->get();
+
+                $favorites = Favorite::where('user_id', $currentUser->id)
+                    ->with('anime')
+                    ->latest('created_at')
+                    ->take(5)
+                    ->get();
+            }
 
             return view('lite.search', [
                 'items' => [],
                 'genres' => $genres,
                 'searchQuery' => $searchQuery,
+                'watchProgress' => $watchProgress,
+                'favorites' => $favorites,
             ]);
         }
 

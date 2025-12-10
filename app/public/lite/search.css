@@ -41,3 +41,34 @@
 .search-title {
     margin: 20px;
 }
+
+.suggestions {
+    display: flex;
+    justify-content: space-between;
+}
+
+.suggestions ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.suggestions a {
+    color: #fff;
+}
+
+.suggestions i {
+    margin-top: 10px;
+    display: block;
+    color: #aaa;
+}
+
+.suggestions li > div {
+    display: flex;
+}
+
+.suggestions a > img {
+    width: 150px;
+    object-fit: cover;
+    margin-right: 10px;
+}

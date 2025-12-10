@@ -16,6 +16,52 @@
                 <a href="/genre/{{ $g->id }}" class="tag">{{ $g->name }}</a>
             @endforeach
         </div>
+
+        <div class="suggestions">
+            <div>
+                <h3>Продолжить просмотр:</h3>
+                <ul>
+                    @forelse ($watchProgress as $progress)
+                        <li>
+                            <div>
+                                <a href="/anime/{{ $progress->anime_id }}">
+                                    <img src="/{{ $progress->anime->poster }}" alt="{{ $progress->anime->title }}">
+                                </a>
+                                <span>
+                                    <a href="/anime/{{ $progress->anime_id }}">{{ $progress->anime->title }}</a>
+                                    <br>
+                                    <i>Серия {{ $progress->episode_number }}</i>
+                                    <i>Продолжить просмотр с {{ gmdate('H:i:s', $progress->time) }}</i>
+                                </span>
+                            </div>
+                        </li>
+                    @empty
+                        <li><em>Нет просмотренных аниме</em></li>
+                    @endforelse
+                </ul>
+            </div>
+            <div>
+                <h3>Избранное:</h3>
+                <ul>
+                    @forelse ($favorites as $favorite)
+                        <li>
+                            <div>
+                                <a href="/anime/{{ $favorite->anime_id }}">
+                                    <img src="/{{ $favorite->anime->poster }}" alt="{{ $favorite->anime->title }}">
+                                </a>
+                                <span>
+                                    <a href="/anime/{{ $favorite->anime_id }}">{{ $favorite->anime->title }}</a>
+                                    <br>
+                                    <i>Добавлено {{ $favorite->created_at->format('d.m.Y') }}</i>
+                                </span>
+                            </div>
+                        </li>
+                    @empty
+                        <li><em>Нет добавленных в избранное</em></li>
+                    @endforelse
+                </ul>
+            </div>
+        </div>
     </div>
 
     @parent
