@@ -4,8 +4,10 @@
     <div class="search-page">
         <div class="search-bar">
             <form method="get" action="/search" class="search-form">
-                <input type="text" name="query" placeholder="Название аниме" value="{{ $searchQuery }}" inputmode="text"
-                    lang="ru" required>
+                <input type="text" id="search-input" name="query" placeholder="Название аниме" value="{{ $searchQuery }}"
+                    inputmode="text" lang="ru" required>
+                <ul class="search-suggestions" id="search-suggestions">
+                </ul>
                 <button type="submit">Искать</button>
             </form>
         </div>
@@ -65,4 +67,8 @@
     </div>
 
     @parent
+@endsection
+
+@section('scripts')
+    <script src="/lite/js/search.js"></script>
 @endsection

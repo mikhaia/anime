@@ -104,9 +104,12 @@
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
-        const version = Date.now();
-        document.write(`<script src="/lite/script.js?${version}"><\/script>`);
+        // const version = Date.now();
+        // document.write(`<script src="/lite/script.js?${version}"><\/script>`);
     </script>
+    <script src="/lite/script.js"></script>
+    @yield('scripts')
+
 </body>
 
 </html>

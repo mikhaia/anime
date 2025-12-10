@@ -174,4 +174,28 @@ class ListController extends Controller
 
         return $s;
     }
+
+    public function searchSuggestions(Request $request)
+    {
+        $query = trim((string) $request->input('query', ''));
+
+        if (!$query) {
+            return response()->json([]);
+        }
+        $suggestions = Anime::query()
+            ->where('title', 'like', '%' . $query . '%')
+            ->orWhere('title_english', 'like', '%' . $query . '%')
+            ->select('id', 'title', 'title_english')
+            ->limit(10)
+            ->get()
+            ->map(function ($anime) {
+                return [
+                    'id' => $anime->id,
+                    'title' => $anime->title,
+                    'title_english' => $anime->title_english,
+                ];
+            });
+
+        return response()->json($suggestions);
+    }
 }

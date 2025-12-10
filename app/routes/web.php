@@ -26,6 +26,7 @@ Route::prefix('api')->group(function () {
     Route::get('catalog/{category}', [AnimeController::class, 'catalog']);
     Route::get('anime/search', [AnimeController::class, 'search']);
     Route::get('anime/suggestions', [AnimeController::class, 'suggestions']);
+    Route::get('search-suggestions', [ListController::class, 'searchSuggestions']);
 });
 
 Route::get('/register', [AuthController::class, 'showRegister']);
