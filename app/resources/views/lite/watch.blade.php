@@ -91,6 +91,7 @@
         let quality;
         let episode;
         const episodes = JSON.parse('{!! json_encode($episodes, JSON_UNESCAPED_SLASHES) !!}');
+        const animeId = {{ $anime->id }};
 
         function selectVideo(url, play = false) {
             if (video.canPlayType('application/vnd.apple.mpegURL')) {
@@ -107,6 +108,20 @@
                 }
             } else {
                 console.error('HLS не поддерживается этим браузером');
+            }
+        }
+
+        function saveWatchProgress() {
+            if (episode && video.currentTime > 0) {
+                $.post('/watch-progress', {
+                    anime_id: animeId,
+                    episode_number: episode,
+                    time: Math.floor(video.currentTime)
+                }, function(data) {
+                    console.log('Progress saved:', data);
+                }).fail(function(error) {
+                    console.error('Error saving progress:', error);
+                });
             }
         }
 
@@ -187,8 +202,9 @@
                 prevEpisode();
             });
 
-            // Инициализация состояния кнопок при загрузке
             updateNavigationButtons();
+
+            setInterval(saveWatchProgress, 60 * 1000);
 
             $('.video-cover').click(function() {
                 $(this).hide();

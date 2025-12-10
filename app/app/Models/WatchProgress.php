@@ -13,6 +13,7 @@ class WatchProgress extends Model
         'user_id',
         'anime_id',
         'episode_number',
+        'time',
     ];
 
     public function user(): BelongsTo

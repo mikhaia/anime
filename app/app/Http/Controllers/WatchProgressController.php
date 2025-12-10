@@ -4,9 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Anime;
 use App\Models\WatchProgress;
-use App\Support\Auth;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class WatchProgressController extends Controller
 {
@@ -22,6 +22,7 @@ class WatchProgressController extends Controller
         $data = $this->validate($request, [
             'anime_id' => 'required|integer|min:1',
             'episode_number' => 'required|integer|min:1',
+            'time' => 'nullable|integer|min:0',
         ]);
 
         $anime = Anime::find($data['anime_id']);
@@ -42,6 +43,7 @@ class WatchProgressController extends Controller
             ],
             [
                 'episode_number' => $episodeNumber,
+                'time' => $data['time'] ?? 0,
             ]
         );
 
@@ -50,6 +52,7 @@ class WatchProgressController extends Controller
             'progress' => [
                 'anime_id' => $progress->anime_id,
                 'episode_number' => $progress->episode_number,
+                'time' => $progress->time,
             ],
         ]);
     }

@@ -61,8 +61,6 @@ class ViewController extends Controller
 
     private function syncEpisodes($anime, $episodes)
     {
-        // dd($anime);
-        // dd($episodes);
         foreach ($episodes as $episode) {
             Episode::updateOrCreate(
                 [

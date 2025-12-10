@@ -129,8 +129,13 @@ function getAbove() {
   return found.length ? found : null;
 }
 
-$(document).on('click', 'a', function() {
+$(document).on('click', 'a', function(e) {
   const href = $(this).attr('href');
+  const onclick = $(this).attr('onclick');
+
+  if (onclick) {
+    return;
+  }
 
   if (href && href !== '#') {
     $('.loader').css('display', 'flex');
