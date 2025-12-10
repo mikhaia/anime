@@ -44,6 +44,7 @@ class ViewController extends Controller
         foreach ($anime->streams as $stream) {
             $qualities[$stream->quality] = $stream->quality;
         }
+        $qualities = array_reverse($qualities);
 
         $favorited = false;
         $currentUser = Auth::user();
