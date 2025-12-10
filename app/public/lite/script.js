@@ -145,3 +145,7 @@ $(document).on('click', 'a', function(e) {
 $(window).on('beforeunload pagehide', function() {
   $('.loader').css('display', 'flex');
 });
+
+$(window).on('pageshow', function() {
+  $('.loader').hide();
+});

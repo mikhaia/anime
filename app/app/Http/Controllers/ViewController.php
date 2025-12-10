@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Anime;
 use App\Models\Episode;
 use App\Models\Relate;
+use App\Models\WatchProgress;
 use App\Support\AnilibriaClient;
 use App\Models\Favorite;
 use Illuminate\Support\Facades\Auth;
@@ -52,10 +53,18 @@ class ViewController extends Controller
                 ->exists();
         }
 
+        $progress = null;
+        if ($currentUser) {
+            $progress = WatchProgress::where('user_id', $currentUser->id)
+                ->where('anime_id', $anime->id)
+                ->first();
+        }
+
         return view('lite.watch', [
             'anime' => $anime,
             'qualities' => $qualities,
             'favorited' => $favorited,
+            'progress' => $progress,
         ]);
     }
 

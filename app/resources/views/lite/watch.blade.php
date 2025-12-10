@@ -56,7 +56,8 @@
             <select id="select-season">
                 <option>Выбрать сезон</option>
                 @foreach ($anime->relates as $r)
-                    <option value="{{ $r->relate_id }}">{{ $r->title }}</option>
+                    <option value="{{ $r->relate_id }}" @if ($r->relate_id == $anime->id) selected @endif>
+                        {{ $r->title }}</option>
                 @endforeach
             </select>
         </div>
@@ -144,6 +145,25 @@
                 $('#btn-next-episode').prop('disabled', currentIndex >= options.length - 1);
             }
 
+            @if ($progress)
+                const savedEpisode = {{ $progress->episode_number }};
+                const savedTime = {{ $progress->time }};
+
+                $('#select-episode').val(savedEpisode);
+                episode = savedEpisode;
+
+                selectVideo(episodes[episode][quality], false);
+
+                $('.video-cover').hide();
+
+                video.addEventListener('loadedmetadata', function setProgress() {
+                    video.currentTime = savedTime;
+                    video.removeEventListener('loadedmetadata', setProgress);
+                });
+            @endif
+
+            updateNavigationButtons();
+
             function nextEpisode() {
                 const selectEpisode = $('#select-episode');
                 const options = selectEpisode.find('option');
@@ -171,7 +191,7 @@
                     }
                 });
 
-                if (currentIndex > 1) { // Пропускаем первый option "Выбрать серию"
+                if (currentIndex > 1) {
                     selectEpisode.prop('selectedIndex', currentIndex - 1).change();
                 }
             }
@@ -191,7 +211,6 @@
                 location.href = '/anime/' + $(this).val();
             });
 
-            // Обработчики для кнопок навигации
             $('#btn-next-episode').click(function(e) {
                 e.preventDefault();
                 nextEpisode();
@@ -202,9 +221,11 @@
                 prevEpisode();
             });
 
-            updateNavigationButtons();
+            @if (!$progress)
+                updateNavigationButtons();
+            @endif
 
-            setInterval(saveWatchProgress, 60 * 1000);
+            setInterval(saveWatchProgress, 60 * 1000); // Сохранять прогресс каждую минуту
 
             $('.video-cover').click(function() {
                 $(this).hide();
