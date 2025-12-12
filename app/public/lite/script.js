@@ -49,7 +49,7 @@ if (isChromecast) {
 } 
 
 $(document).on('keydown', function (e) {
-	//  alert('Down key: ' + e.key + '\ncode: ' + e.code + '\nkeyCode: ' + e.keyCode);
+	 alert('Down key: ' + e.key + '\ncode: ' + e.code + '\nkeyCode: ' + e.keyCode);
   switch (e.key) {
     case 'ArrowUp': up(); break;
     case 'ArrowDown': down(); break;
