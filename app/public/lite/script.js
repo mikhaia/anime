@@ -49,7 +49,7 @@ if (isChromecast) {
 } 
 
 $(document).on('keydown', function (e) {
-	 alert('Down key: ' + e.key + '\ncode: ' + e.code + '\nkeyCode: ' + e.keyCode);
+	// alert('Down key: ' + e.key + '\ncode: ' + e.code + '\nkeyCode: ' + e.keyCode);
   switch (e.key) {
     case 'ArrowUp': up(); break;
     case 'ArrowDown': down(); break;
@@ -60,6 +60,7 @@ $(document).on('keydown', function (e) {
   }
 
   if (isTV) {
+    // switch e.key from 0 to 9
     switch (e.keyCode) {
       case 403: location.href = '/'; break; // TV Red Button
       case 404: location.href = '/list?mode=favorites'; break; // TV Green Button
