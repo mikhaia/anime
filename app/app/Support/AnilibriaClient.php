@@ -719,11 +719,6 @@ class AnilibriaClient
             return null;
         }
 
-        $statusCode = $this->extractStatusCode($http_response_header ?? []);
-        if ($statusCode < 200 || $statusCode >= 300) {
-            return null;
-        }
-
         $payload = json_decode($response, true);
         if (!is_array($payload)) {
             return null;

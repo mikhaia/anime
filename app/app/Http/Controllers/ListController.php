@@ -18,7 +18,7 @@ class ListController extends Controller
         $page = $request->input('page', 1);
         $results = AnimeCatalogCache::query()->where('page', $page)->where('category', 'lite_new')->whereDate('cached_date', date('Y-m-d'))->first();
 
-        if (!$results) {
+        if (!$results || !$results->anime_ids) {
             $client = new AnilibriaClient();
             $results = $client->fetchLite('lite_new', $page);
             $animeIds = $results['animeIds'];
