@@ -5,12 +5,15 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use App\Models\Favorite;
 use App\Models\Login;
+use App\Models\PasswordReset;
+use App\Mail\PasswordResetMail;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Mail;
 
 class UserController extends Controller
 {
@@ -132,5 +135,85 @@ class UserController extends Controller
         ]);
 
         Auth::login($user);
+    }
+
+    public function recover(Request $request): JsonResponse
+    {
+        $email = strtolower(trim($request->input('email')));
+
+        $user = User::where('email', $email)->first();
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Пользователь с таким email не найден.',
+            ]);
+        }
+
+        // Удалить старые токены для этого пользователя
+        PasswordReset::where('user_id', $user->id)->delete();
+
+        // Создать новый токен
+        $token = Str::random(64);
+        PasswordReset::create([
+            'user_id' => $user->id,
+            'token' => $token,
+            'created_at' => now(),
+            'expires_at' => now()->addHours(1),
+        ]);
+
+        // Отправить письмо с ссылкой на восстановление
+        $resetUrl = url('/lite/reset/' . $token);
+        Mail::to($user->email)->send(new PasswordResetMail($user, $resetUrl));
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Ссылка для восстановления пароля отправлена на email.',
+        ]);
+    }
+
+    public function showReset(Request $request, $token)
+    {
+        $reset = PasswordReset::where('token', $token)
+            ->where('expires_at', '>', now())
+            ->first();
+
+        if (!$reset) {
+            return redirect('/')->with('error', 'Ссылка восстановления истекла или невалидна.');
+        }
+
+        return view('lite.reset', [
+            'token' => $token,
+        ]);
+    }
+
+    public function reset(Request $request)
+    {
+        $token = trim($request->input('token'));
+        $password = trim($request->input('password'));
+
+        $reset = PasswordReset::where('token', $token)
+            ->where('expires_at', '>', now())
+            ->first();
+
+        if (!$reset) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Ссылка восстановления истекла или невалидна.',
+            ]);
+        }
+
+        // Обновить пароль
+        $user = $reset->user;
+        $user->update([
+            'password' => Hash::make($password),
+        ]);
+
+        // Удалить токен
+        $reset->delete();
+
+        // Авторизовать пользователя и отправить на главную
+        $this->auth($user);
+
+        return redirect('/');
     }
 }

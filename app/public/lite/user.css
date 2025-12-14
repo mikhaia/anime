@@ -1,6 +1,9 @@
 .overlay {
     position: fixed;
-    inset: 0;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
     background: rgba(0, 0, 0, 0.6);
     z-index: 100;
     display: none;
@@ -66,7 +69,27 @@
 
 .form .bottom {
     display: flex;
-    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+}
+
+.form .bottom button {
+    flex: 1;
+    min-width: 100px;
+    text-wrap: nowrap;
+}
+
+.form .bottom a {
+    flex: 0 0 100%;
+    text-align: center;
+    color: #007BFF;
+    text-decoration: none;
+    font-size: 14px;
+}
+
+.form .bottom a:hover {
+    text-decoration: underline;
 }
 
 .error-message {
@@ -75,8 +98,21 @@
     font-style: italic;
 }
 
+.error-message.success {
+    color: green;
+    font-style: normal;
+}
+
 .user-register {
     display: none;
+}
+
+.user-recover {
+    display: none;
+}
+
+.password-reset {
+    display: block;
 }
 
 .user-screen {

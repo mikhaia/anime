@@ -2,19 +2,45 @@ document.addEventListener('DOMContentLoaded', function () {
 
     $('.modal .form').on('submit', function (event) {
         event.preventDefault();
-        $.post($(this).attr('action'), $(this).serialize(), function (response) {
+        
+        const $form = $(this);
+        const $errorMessage = $form.find('.error-message');
+        
+        // Валидация для формы сброса пароля
+        if ($form.hasClass('reset-form')) {
+            const password = $form.find('input[name="password"]').val();
+            const passwordConfirm = $form.find('input[name="password_confirm"]').val();
+            
+            if (password !== passwordConfirm) {
+                $errorMessage.text('Пароли не совпадают.').show();
+                return;
+            }
+            
+            if (password.length < 6) {
+                $errorMessage.text('Пароль должен быть не менее 6 символов.').show();
+                return;
+            }
+        }
+        
+        $.post($form.attr('action'), $form.serialize(), function (response) {
             if (response.success) {
                 location.reload();
             } else {
-                $('.error-message').text(response.message);
+                $errorMessage.text(response.message).show();
             }
+        }).fail(function () {
+            $errorMessage.text('Ошибка при отправке формы.').show();
         });
     });
 
 
     $('.modal .close').on('click', function (event) {
         event.preventDefault();
-        $('.overlay').removeClass('show');
+        if ($(this).attr('href') === '/') {
+            window.location.href = '/';
+        } else {
+            $('.overlay').removeClass('show');
+        }
     });
 
     $('.open-auth-modal').on('click', function (event) {
@@ -23,10 +49,21 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     $('.create-user').on('click', function () {
+        $('.user-login').hide();
         $('.user-register').show();
+        $('.user-recover').hide();
     });
 
     $('.back-to-login').on('click', function () {
-        $loginBlock.show();
+        $('.user-login').show();
+        $('.user-register').hide();
+        $('.user-recover').hide();
+    });
+
+    $('.recover-password').on('click', function (event) {
+        event.preventDefault();
+        $('.user-login').hide();
+        $('.user-register').hide();
+        $('.user-recover').show();
     });
 });

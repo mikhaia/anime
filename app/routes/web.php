@@ -50,6 +50,9 @@ Route::get('/genre/{genre}', [ListController::class, 'genre'])
 
 Route::post('/lite/login', [UserController::class, 'login']);
 Route::post('/lite/create', [UserController::class, 'create']);
+Route::post('/lite/recover', [UserController::class, 'recover']);
+Route::get('/lite/reset/{token}', [UserController::class, 'showReset']);
+Route::post('/lite/reset', [UserController::class, 'reset']);
 Route::get('/test', [UserController::class, 'test']);
 Route::post('/favorite', [UserController::class, 'favorite']);
 Route::get('/users', [UserController::class, 'index']);

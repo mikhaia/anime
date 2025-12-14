@@ -19,6 +19,7 @@
                 <div class="bottom">
                     <button type="submit">Войти</button>
                     <button type="button" class="create-user">Создать пользователя</button>
+                    <a href="#" class="recover-password">Забыли пароль?</a>
                 </div>
             </form>
         </div>
@@ -43,6 +44,22 @@
                 <div class="bottom">
                     <button type="submit">Создать</button>
                     {{-- <button type="button" class="back-to-login">У меня есть аккаунт</button> --}}
+                </div>
+            </form>
+        </div>
+
+        <div class="user-recover">
+            <h3>Восстановить пароль</h3>
+            <div class="error-message" data-error="recover"></div>
+            <form method="POST" action="{{ url('/lite/recover') }}" class="form">
+                @csrf
+                <div class="field">
+                    <label for="recover-email">Email:</label>
+                    <input type="email" id="recover-email" name="email" required>
+                </div>
+                <div class="bottom">
+                    <button type="submit">Отправить ссылку</button>
+                    <button type="button" class="back-to-login">Вернуться к входу</button>
                 </div>
             </form>
         </div>
