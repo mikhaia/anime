@@ -12,6 +12,7 @@ class AnilibriaClient
 {
     // private const API_BASE_URL = 'https://anilibria.top/api/v1/anime';
     private const API_BASE_URL = 'https://aniliberty.top/api/v1/anime';
+    private const IMAGE_URL = 'https://aniliberty.top';
     private const BASE_URL = 'https://anilibria.top';
     private const CATALOG_ENDPOINT = '/catalog/releases';
     private const CATALOG_PER_PAGE = 15;
@@ -223,7 +224,10 @@ class AnilibriaClient
                     'ignore_errors' => true,
                 ],
             ]);
-            $file = file_get_contents('https://anilibria.top' . $posterSource, false, $context) ?: null;
+            $file = file_get_contents(self::IMAGE_URL . $posterSource, false, $context) ?: null;
+            if (!$file || strpos($file, 'error') !== false) {
+                dd('Failed to download poster image.', $file);
+            }
             $filename = basename(parse_url($data['poster']['optimized']['preview'], PHP_URL_PATH));
             $posterPath = 'data/posters/' . $filename;
             file_put_contents($posterPath, $file);
