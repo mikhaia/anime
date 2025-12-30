@@ -62,7 +62,7 @@
     background: #007BFF;
     color: white;
     border: none;
-    padding: 10px 20px;
+    padding: 15px 20px;
     border-radius: 5px;
     cursor: pointer;
 }
@@ -156,4 +156,77 @@
     border: 1px solid #666;
     border-radius: 20px;
     overflow: hidden;
+}
+
+.avatar-edit {
+    position: absolute;
+    color: #fff;
+    opacity: .8;
+    border-radius: 20px;
+    background: rgba(0, 0, 0, 0.3);
+}
+
+.avatar-edit:hover {
+    opacity: 1;
+    background: rgba(0, 0, 0, 0.6);
+}
+
+.user-edit-screen {
+    background-color: #fff;
+    border-radius: 20px;
+    margin: auto;
+    color: #222;
+    padding: 30px;
+}
+
+.user-edit-screen > form > div {
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.user-edit-screen .avatar-preview {
+    justify-content: center;
+}
+
+.user-edit-screen .avatar-preview img {
+    border-radius: 20px;
+}
+
+.file-input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background: #f8f8f8;
+}
+
+.file-input:focus {
+    border-color: #007BFF;
+}
+
+.file-input::file-selector-button {
+    background: #007BFF;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+}
+
+.text-input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: #f8f8f8;
+}
+
+.text-input:focus {
+    background-color: #fff;
+}
+
+.form label {
+    margin-right: 30px;
+    width: 100px;
 }

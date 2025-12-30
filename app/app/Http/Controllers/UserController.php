@@ -14,9 +14,69 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Mail;
+use Intervention\Image\Facades\Image;
 
 class UserController extends Controller
 {
+    /**
+     * Показать форму редактирования профиля (Lite)
+     */
+    public function edit(Request $request)
+    {
+        $user = Auth::user();
+        if (!$user) {
+            return redirect('/users');
+        }
+        return view('lite.user_edit', [
+            'user' => $user,
+        ]);
+    }
+
+    /**
+     * Обновить профиль пользователя (Lite)
+     */
+    public function update(Request $request)
+    {
+        $authUser = Auth::user();
+        if (!$authUser) {
+            exit('Unauthorized');
+        }
+
+        $user = User::find($authUser->id);
+        if (!$user) {
+            exit('User not found');
+        }
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255|unique:users,email,' . $user->id,
+            'avatar' => 'nullable|image|max:2048',
+            'password' => 'nullable|string|min:6',
+        ]);
+
+        $user->name = $validated['name'];
+        $user->email = $validated['email'];
+
+        if ($request->hasFile('avatar')) {
+            if ($user->avatar_path) {
+                unlink(public_path($user->avatar_path));
+            }
+            $avatar = $request->file('avatar');
+            $path = 'data/avatars/' . $user->id . '.' . $avatar->getClientOriginalExtension();
+            Image::make($avatar)->fit(200, 200)->save($path);
+            $user->avatar_path = $path;
+        }
+
+        if (!empty($validated['password'])) {
+            $user->password = Hash::make($validated['password']);
+        }
+
+        $user->save();
+        $this->auth($user);
+
+        return redirect('/users')->with('success', 'Профиль обновлен!');
+    }
+
     public function index(Request $request)
     {
         $logins = json_decode(Cookie::get('users') ?? '[]', true);
@@ -202,7 +262,6 @@ class UserController extends Controller
             ]);
         }
 
-        // Обновить пароль
         $user = $reset->user;
         $user->update([
             'password' => Hash::make($password),

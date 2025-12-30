@@ -56,5 +56,7 @@ Route::post('/lite/reset', [UserController::class, 'reset']);
 Route::get('/test', [UserController::class, 'test']);
 Route::post('/favorite', [UserController::class, 'favorite']);
 Route::get('/users', [UserController::class, 'index']);
+Route::get('/users/edit', [UserController::class, 'edit']);
+Route::post('/users/edit', [UserController::class, 'update']);
 Route::get('/switch/{id}', [UserController::class, 'switch'])
     ->whereNumber('id');
