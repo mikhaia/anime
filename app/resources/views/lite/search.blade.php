@@ -24,19 +24,21 @@
                 <h3>Продолжить просмотр:</h3>
                 <ul>
                     @forelse ($watchProgress as $progress)
-                        <li>
-                            <div>
-                                <a href="/anime/{{ $progress->anime_id }}">
-                                    <img src="/{{ $progress->anime->poster }}" alt="{{ $progress->anime->title }}">
-                                </a>
-                                <span>
-                                    <a href="/anime/{{ $progress->anime_id }}">{{ $progress->anime->title }}</a>
-                                    <br>
-                                    <i>Серия {{ $progress->episode_number }}</i>
-                                    <i>Продолжить просмотр с {{ gmdate('H:i:s', $progress->time) }}</i>
-                                </span>
-                            </div>
-                        </li>
+                        @if ($progress->anime)
+                            <li>
+                                <div>
+                                    <a href="/anime/{{ $progress->anime_id }}">
+                                        <img src="/{{ $progress->anime->poster }}" alt="{{ $progress->anime->title }}">
+                                    </a>
+                                    <span>
+                                        <a href="/anime/{{ $progress->anime_id }}">{{ $progress->anime->title }}</a>
+                                        <br>
+                                        <i>Серия {{ $progress->episode_number }}</i>
+                                        <i>Продолжить просмотр с {{ gmdate('H:i:s', $progress->time) }}</i>
+                                    </span>
+                                </div>
+                            </li>
+                        @endif
                     @empty
                         <li><em>Нет просмотренных аниме</em></li>
                     @endforelse

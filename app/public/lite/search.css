@@ -70,8 +70,12 @@
 
 .suggestions a > img {
     width: 150px;
+    height: 150px;
     object-fit: cover;
     margin-right: 10px;
+    margin-bottom: 10px;
+    border-radius: 10px;
+    border: 1px solid #aaa;
 }
 
 .search-suggestions {
