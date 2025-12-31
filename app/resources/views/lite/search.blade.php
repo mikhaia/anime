@@ -12,13 +12,6 @@
             </form>
         </div>
 
-        <div class="genre-list">
-            <h3>Жанры:</h3>
-            @foreach ($genres as $g)
-                <a href="/genre/{{ $g->id }}" class="tag">{{ $g->name }}</a>
-            @endforeach
-        </div>
-
         <div class="suggestions">
             <div>
                 <h3>Продолжить просмотр:</h3>
@@ -65,6 +58,13 @@
                     @endforelse
                 </ul>
             </div>
+        </div>
+
+        <div class="genre-list">
+            <h3>Жанры:</h3>
+            @foreach ($genres as $g)
+                <a href="/genre/{{ $g->id }}" class="tag">{{ $g->name }}</a>
+            @endforeach
         </div>
     </div>
 
