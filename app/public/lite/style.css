@@ -13,7 +13,7 @@ body::before {
   content: "";
   position: fixed;
   inset: 0;
-  background: url('./back/night_back.webp') no-repeat center center;
+  background: url('./back/night_back.webp') no-repeat center bottom;
   background-size: cover;
   opacity: 0.5;
   z-index: -1;
@@ -165,7 +165,7 @@ body::before {
     position: relative;
     overflow: hidden;
     color: #fff;
-    border: 1px solid rgba(255,255,255,.4);
+    border: 1px solid rgba(255,255,255,.1);
     box-sizing: border-box;
 }
 
