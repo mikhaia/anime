@@ -22,6 +22,20 @@ if (! function_exists('csrf_field')) {
      */
     function csrf_field(): HtmlString
     {
-        return new HtmlString('<input type="hidden" name="_token" value="'.csrf_token().'" autocomplete="off">');
+        return new HtmlString('<input type="hidden" name="_token" value="' . csrf_token() . '" autocomplete="off">');
+    }
+}
+
+
+if (! function_exists('age')) {
+    /**
+     * Convert a R[Number]_PLUS to an integer.
+     *
+     * @param  mixed  $value
+     * @return int
+     */
+    function age(mixed $str): int
+    {
+        return (int) str_replace(['R', '_PLUS'], '', $str);
     }
 }

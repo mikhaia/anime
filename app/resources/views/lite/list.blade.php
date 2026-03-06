@@ -12,9 +12,10 @@
     <div class="wrapper">
         <div class="list">
             @foreach ($items as $item)
-                <a class="item" href="/anime/{{ $item->id }}">
+                <a class="item" href="/anime/{{ $item->id }}" title="{{ $item->title }}">
                     <img src="/{{ $item->poster }}" alt="{{ $item->title }}">
-                    <b class="title">{{ $item->title }}</b>
+                    <span class="age">{{ age($item->age_rating) }}+</span>
+                    <b class="title">{{ Str::limit($item->title, 75) }}</b>
                 </a>
             @endforeach
         </div>
