@@ -41,18 +41,20 @@
                 <h3>Избранное:</h3>
                 <ul>
                     @forelse ($favorites as $favorite)
-                        <li>
-                            <div>
-                                <a href="/anime/{{ $favorite->anime_id }}">
-                                    <img src="/{{ $favorite->anime->poster }}" alt="{{ $favorite->anime->title }}">
-                                </a>
-                                <span>
-                                    <a href="/anime/{{ $favorite->anime_id }}">{{ $favorite->anime->title }}</a>
-                                    <br>
-                                    <i>Добавлено {{ $favorite->created_at->format('d.m.Y') }}</i>
-                                </span>
-                            </div>
-                        </li>
+                        @if ($favorite->anime)
+                            <li>
+                                <div>
+                                    <a href="/anime/{{ $favorite->anime_id }}">
+                                        <img src="/{{ $favorite->anime->poster }}" alt="{{ $favorite->anime->title }}">
+                                    </a>
+                                    <span>
+                                        <a href="/anime/{{ $favorite->anime_id }}">{{ $favorite->anime->title }}</a>
+                                        <br>
+                                        <i>Добавлено {{ $favorite->created_at->format('d.m.Y') }}</i>
+                                    </span>
+                                </div>
+                            </li>
+                        @endif
                     @empty
                         <li><em>Нет добавленных в избранное</em></li>
                     @endforelse

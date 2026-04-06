@@ -5,8 +5,8 @@
 
         <div class="user-login">
             <h3>Войти</h3>
-            <div class="error-message" data-error="login"></div>
             <form method="POST" action="{{ url('/lite/login') }}" class="form">
+                <div class="error-message" data-error="login"></div>
                 @csrf
                 <div class="field">
                     <label for="login-name">Имя пользователя или email:</label>
@@ -26,8 +26,8 @@
 
         <div class="user-register">
             <h3>Создать пользователя</h3>
-            <div class="error-message" data-error="register"></div>
             <form method="POST" action="{{ url('/lite/create') }}" class="form">
+                <div class="error-message" data-error="register"></div>
                 @csrf
                 <div class="field">
                     <label for="register-name">Имя пользователя:</label>
@@ -50,8 +50,8 @@
 
         <div class="user-recover">
             <h3>Восстановить пароль</h3>
-            <div class="error-message" data-error="recover"></div>
             <form method="POST" action="{{ url('/lite/recover') }}" class="form">
+                <div class="error-message" data-error="recover"></div>
                 @csrf
                 <div class="field">
                     <label for="recover-email">Email:</label>

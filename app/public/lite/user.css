@@ -174,7 +174,7 @@
 .user-edit-screen {
     background-color: #fff;
     border-radius: 20px;
-    margin: auto;
+    margin: 30px auto;
     color: #222;
     padding: 30px;
 }
@@ -192,6 +192,11 @@
 
 .user-edit-screen .avatar-preview img {
     border-radius: 20px;
+}
+
+.user-edit-screen label {
+    margin-right: 30px;
+    width: 100px;
 }
 
 .file-input {
@@ -224,9 +229,4 @@
 
 .text-input:focus {
     background-color: #fff;
-}
-
-.form label {
-    margin-right: 30px;
-    width: 100px;
 }
