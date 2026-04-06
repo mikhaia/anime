@@ -89,24 +89,46 @@
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <script>
         const video = document.getElementById('player');
+        const videoContainer = document.querySelector('.video');
+        let hls = null;
         let quality;
         let episode;
+        let shouldAutoplayEpisode = false;
         const episodes = JSON.parse('{!! json_encode($episodes, JSON_UNESCAPED_SLASHES) !!}');
         const animeId = {{ $anime->id }};
 
         function selectVideo(url, play = false) {
-            if (video.canPlayType('application/vnd.apple.mpegURL')) {
-                video.src = url;
-                if (play) {
-                    video.play();
-                }
-            } else if (window.Hls && Hls.isSupported()) {
-                const hls = new Hls();
+            // 🧹 очистка предыдущего
+            if (hls) {
+                hls.detachMedia();
+                hls.destroy();
+                hls = null;
+            }
+
+            // ❗ сброс video (важно)
+            video.pause();
+            video.removeAttribute('src');
+            video.load();
+
+            if (window.Hls && Hls.isSupported()) {
+                hls = new Hls();
+
                 hls.loadSource(url);
                 hls.attachMedia(video);
+
                 if (play) {
-                    hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
+                    hls.on(Hls.Events.MANIFEST_PARSED, () => {
+                        video.play().catch(() => {});
+                    });
                 }
+
+            } else if (video.canPlayType('application/vnd.apple.mpegURL')) {
+                video.src = url;
+
+                if (play) {
+                    video.play().catch(() => {});
+                }
+
             } else {
                 console.error('HLS не поддерживается этим браузером');
             }
@@ -176,8 +198,16 @@
                 });
 
                 if (currentIndex !== -1 && currentIndex < options.length - 1) {
-                    selectEpisode.prop('selectedIndex', currentIndex + 1).change();
+                    changeEpisodeSelection(currentIndex + 1);
                 }
+            }
+
+            function changeEpisodeSelection(index, autoplay = true) {
+                shouldAutoplayEpisode = autoplay;
+                if (autoplay) {
+                    $('.video-cover').hide();
+                }
+                $('#select-episode').prop('selectedIndex', index).change();
             }
 
             function prevEpisode() {
@@ -192,8 +222,64 @@
                 });
 
                 if (currentIndex > 1) {
-                    selectEpisode.prop('selectedIndex', currentIndex - 1).change();
+                    changeEpisodeSelection(currentIndex - 1);
                 }
+            }
+
+            function togglePlayback() {
+                if (!video.src) {
+                    if ($('#select-episode').val()) {
+                        const selectedEpisode = parseInt($('#select-episode').val());
+                        episode = selectedEpisode;
+                        $('.video-cover').hide();
+                        selectVideo(episodes[selectedEpisode][quality], true);
+                    } else {
+                        const firstEpisode = Object.keys(episodes)[0];
+                        const firstOption = $('#select-episode option[value="' + firstEpisode + '"]').prop(
+                            'index');
+                        changeEpisodeSelection(firstOption, true);
+                    }
+                    return;
+                }
+
+                if (video.paused) {
+                    $('.video-cover').hide();
+                    video.play().catch(() => {});
+                    return;
+                }
+
+                video.pause();
+            }
+
+            function toggleFullscreen() {
+                if (document.fullscreenElement) {
+                    if (document.exitFullscreen) {
+                        document.exitFullscreen().catch(() => {});
+                    }
+                    return;
+                }
+
+                if (videoContainer && videoContainer.requestFullscreen) {
+                    videoContainer.requestFullscreen().catch(() => {});
+                    return;
+                }
+
+                if (video.webkitEnterFullscreen) {
+                    video.webkitEnterFullscreen();
+                }
+            }
+
+            function changeVolume(delta) {
+                const nextVolume = Math.max(0, Math.min(1, video.volume + delta));
+                video.volume = Math.round(nextVolume * 10) / 10;
+
+                if (video.muted && nextVolume > 0) {
+                    video.muted = false;
+                }
+            }
+
+            function isInteractiveElement(target) {
+                return $(target).closest('input, textarea, select, button, a, [contenteditable="true"]').length > 0;
             }
 
             $('#select-quality').change(function() {
@@ -203,7 +289,9 @@
 
             $('#select-episode').change(function() {
                 episode = parseInt($(this).val());
-                selectVideo(episodes[episode][quality]);
+                const autoplay = shouldAutoplayEpisode;
+                shouldAutoplayEpisode = false;
+                selectVideo(episodes[episode][quality], autoplay);
                 updateNavigationButtons();
             });
 
@@ -221,6 +309,50 @@
                 prevEpisode();
             });
 
+            document.addEventListener('keydown', function(e) {
+                if (e.ctrlKey || e.metaKey || e.altKey || isInteractiveElement(e.target)) {
+                    return;
+                }
+
+                if (e.target === video && [' ', 'Spacebar'].includes(e.key)) {
+                    return;
+                }
+
+                if (e.repeat && [' ', 'Enter', 'ArrowLeft', 'ArrowRight', 'PageUp', 'PageDown'].includes(e.key)) {
+                    return;
+                }
+
+                switch (e.key) {
+                    case ' ':
+                    case 'Spacebar':
+                        e.preventDefault();
+                        togglePlayback();
+                        break;
+                    case 'Enter':
+                        e.preventDefault();
+                        toggleFullscreen();
+                        break;
+                    case 'ArrowUp':
+                        e.preventDefault();
+                        changeVolume(0.1);
+                        break;
+                    case 'ArrowDown':
+                        e.preventDefault();
+                        changeVolume(-0.1);
+                        break;
+                    case 'ArrowLeft':
+                    case 'PageUp':
+                        e.preventDefault();
+                        prevEpisode();
+                        break;
+                    case 'ArrowRight':
+                    case 'PageDown':
+                        e.preventDefault();
+                        nextEpisode();
+                        break;
+                }
+            });
+
             @if (!$progress)
                 updateNavigationButtons();
             @endif
@@ -228,17 +360,7 @@
             setInterval(saveWatchProgress, 60 * 1000); // Сохранять прогресс каждую минуту
 
             $('.video-cover').click(function() {
-                $(this).hide();
-                if (video.src) {
-                    video.play();
-                } else {
-                    if ($('#select-episode').val()) {
-                        video.play();
-                    } else {
-                        let first = episodes.find(e => e && e[quality]);
-                        selectVideo(first[quality], true);
-                    }
-                }
+                togglePlayback();
             });
 
             $('.fav-toggle').click(function(e) {

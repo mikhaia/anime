@@ -32,7 +32,7 @@
                 <li class="nav-user">{{-- class="has-submenu" --}}
                     <a href="/users">
                         @if (auth()->user()->avatar_path)
-                            <img src="{{ auth()->user()->avatar_path }}" alt="{{ auth()->user()->name }}"
+                            <img src="{{ asset(auth()->user()->avatar_path) }}" alt="{{ auth()->user()->name }}"
                                 class="nav-avatar">
                         @else
                             <svg width="24" height="24" class="icon icon-user" aria-hidden="true">
