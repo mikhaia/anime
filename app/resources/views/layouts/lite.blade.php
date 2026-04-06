@@ -29,11 +29,16 @@
         </button>
         <nav class="nav">
             <ul id="main-nav">
-                <li>{{-- class="has-submenu" --}}
+                <li class="nav-user">{{-- class="has-submenu" --}}
                     <a href="/users">
-                        <svg width="24" height="24" class="icon icon-user" aria-hidden="true">
-                            <use href="/lite/icons/user.svg#user"></use>
-                        </svg>
+                        @if (auth()->user()->avatar_path)
+                            <img src="{{ auth()->user()->avatar_path }}" alt="{{ auth()->user()->name }}"
+                                class="nav-avatar">
+                        @else
+                            <svg width="24" height="24" class="icon icon-user" aria-hidden="true">
+                                <use href="/lite/icons/user.svg#user"></use>
+                            </svg>
+                        @endif
                         <span class="nav-label">
                             @auth
                                 {{ auth()->user()->name }}

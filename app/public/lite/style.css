@@ -127,6 +127,19 @@ body::before {
     display: none;
 }
 
+.nav-user a {
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+.nav-user .nav-avatar {
+    width: 45px;
+    height: 45px;
+    border-radius: 5px;
+    margin-right: 5px;
+    vertical-align: middle;
+}
+
 .nav a:focus {
     outline: 2px solid yellow;
 }
