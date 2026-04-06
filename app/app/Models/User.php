@@ -42,4 +42,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(WatchProgress::class);
     }
+
+    public function getAvatarPathAttribute($value): string
+    {
+        return $value ?: 'img/no-avatar.jpg';
+    }
 }
