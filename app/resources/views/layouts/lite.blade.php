@@ -56,7 +56,7 @@
                         <span class="nav-label">Поиск</span>
                     </a>
                 </li>
-                <li class="nav-favorites {{ request()->is('favs*') ? 'active' : '' }}">
+                <li class="nav-favorites {{ request()->is('fav*') ? 'active' : '' }}">
                     <a href="/fav">
                         <svg width="24" height="24" class="icon icon-fav" aria-hidden="true">
                             <use href="/lite/icons/fav.svg#fav"></use>
