@@ -31,7 +31,7 @@
             <ul id="main-nav">
                 <li class="nav-user">{{-- class="has-submenu" --}}
                     <a href="/users">
-                        @if (auth()->user()->avatar_path)
+                        @if (auth()->check() && auth()->user()->avatar_path)
                             <img src="{{ asset(auth()->user()->avatar_path) }}" alt="{{ auth()->user()->name }}"
                                 class="nav-avatar">
                         @else
