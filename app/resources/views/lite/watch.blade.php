@@ -318,7 +318,8 @@
                     return;
                 }
 
-                if (e.repeat && [' ', 'Enter', 'ArrowLeft', 'ArrowRight', 'PageUp', 'PageDown'].includes(e.key)) {
+                if (e.repeat && [' ', 'Enter', 'PageUp', 'PageDown'].includes(e
+                        .key)) {
                     return;
                 }
 
@@ -341,11 +342,17 @@
                         changeVolume(-0.1);
                         break;
                     case 'ArrowLeft':
+                        e.preventDefault();
+                        video.currentTime = Math.max(0, video.currentTime - 60);
+                        break;
+                    case 'ArrowRight':
+                        e.preventDefault();
+                        video.currentTime = Math.min(video.duration || Infinity, video.currentTime + 60);
+                        break;
                     case 'PageUp':
                         e.preventDefault();
                         prevEpisode();
                         break;
-                    case 'ArrowRight':
                     case 'PageDown':
                         e.preventDefault();
                         nextEpisode();

@@ -13,9 +13,11 @@ body::before {
   content: "";
   position: fixed;
   inset: 0;
-  background: url('./back/night_back.webp') no-repeat center bottom;
+  /* background: url('./back/night_back.webp') no-repeat center bottom; */
+  background: url('./back/wise-and-belle-zzz.webp') no-repeat center top;
   background-size: cover;
-  opacity: 0.5;
+  /* opacity: 0.5; */
+  opacity: 0.4;
   z-index: -1;
 }
 

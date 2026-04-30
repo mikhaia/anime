@@ -10,8 +10,8 @@ use Illuminate\Support\Arr;
 
 class AnilibriaClient
 {
-    // private const API_BASE_URL = 'https://anilibria.top/api/v1/anime';
-    private const API_BASE_URL = 'https://aniliberty.top/api/v1/anime';
+    private const API_BASE_URL = 'https://anilibria.top/api/v1/anime';
+    // private const API_BASE_URL = 'https://aniliberty.top/api/v1/anime';
     private const IMAGE_URL = 'https://aniliberty.top';
     private const BASE_URL = 'https://anilibria.top';
     private const CATALOG_ENDPOINT = '/catalog/releases';
