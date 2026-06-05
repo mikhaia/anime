@@ -138,7 +138,7 @@ $(document).on('click', 'a', function (e) {
     return;
   }
 
-  if (href && href !== '#') {
+  if (href && href !== '#' && !href.startsWith('magnet:')) {
     $('.loader').css('display', 'flex');
   }
 });

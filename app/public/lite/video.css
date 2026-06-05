@@ -62,3 +62,30 @@
     display: flex;
     justify-content: space-between;
 }
+
+.torrent-list {
+    display: flex;
+    align-items: end;
+}
+
+.torrent-list ul {
+    margin: 0;
+}
+
+.torrent-list li {
+    list-style: none;
+    margin-top: 10px;
+}
+
+.torrent-list svg {
+    vertical-align: middle; 
+}
+
+.torrent-link {
+    text-decoration: none;
+    color: #fff;
+    background: rgba(0, 0, 0, 0.7);
+    display: inline-block;
+    border-radius: 15px;
+    padding: 5px 15px;
+}

@@ -77,6 +77,24 @@
                 <a href="/genre/{{ $g->id }}" class="tag">{{ $g->name }}</a>
             @endforeach
         </div>
+        <div class="torrent-list">
+        @if ($anime->torrents->isNotEmpty())
+            <ul>
+            @foreach ($anime->torrents as $torrent)
+                @if ($torrent->magnet)
+                    <li>
+                        <a href="{{ $torrent->magnet }}" title="{{ $torrent->label ?: 'Magnet link' }}" class="torrent-link" target="_self">
+                            <svg xmlns="http://www.w3.org/2000/svg" height="32" viewBox="0 -960 960 960" width="32" fill="#e3e3e3">
+                                <path d="m480-320 160-160-56-56-64 64v-168h-80v168l-64-64-56 56 160 160Zm0 240q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z"/>
+                            </svg>
+                            {{ $torrent->label }}
+                        </a>
+                    </li>
+                @endif
+            @endforeach
+            </ul>
+        @endif
+        </div>
     </div>
 
     @php
@@ -364,7 +382,9 @@
                 updateNavigationButtons();
             @endif
 
-            setInterval(saveWatchProgress, 60 * 1000); // Сохранять прогресс каждую минуту
+            @if (Auth::check())
+                setInterval(saveWatchProgress, 60 * 1000); // Сохранять прогресс каждую минуту
+            @endif
 
             $('.video-cover').click(function() {
                 togglePlayback();

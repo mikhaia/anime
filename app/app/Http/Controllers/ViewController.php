@@ -37,8 +37,10 @@ class ViewController extends Controller
             }
 
             $anime->refresh();
-            $anime->load(['episodes', 'streams', 'relates']);
+            $anime->load(['episodes', 'streams', 'relates', 'torrents']);
         }
+
+        $anime->loadMissing(['episodes', 'streams', 'relates', 'torrents']);
 
         $qualities = [];
         foreach ($anime->streams as $stream) {

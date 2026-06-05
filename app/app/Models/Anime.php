@@ -62,6 +62,11 @@ class Anime extends Model
         return $this->hasMany(Relate::class);
     }
 
+    public function torrents(): HasMany
+    {
+        return $this->hasMany(Torrent::class);
+    }
+
     public function getPosterUrlAttribute($value): ?string
     {
         if (is_string($this->poster) && trim($this->poster) !== '') {

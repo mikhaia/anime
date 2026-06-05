@@ -5,6 +5,7 @@ namespace App\Support;
 use App\Models\Anime;
 use App\Models\Genre;
 use App\Models\AnimeCatalogCache;
+use App\Models\Torrent;
 use App\Support\PosterStorage;
 use Illuminate\Support\Arr;
 
@@ -82,6 +83,7 @@ class AnilibriaClient
     {
         $url = self::API_BASE_URL . self::RELEASE_ENDPOINT . '/' . $animeId;
         $release = $this->makeRequest($url);
+        $this->syncTorrents((int) $animeId, Arr::get($release, 'torrents', []));
         foreach ($release['episodes'] as $k => $episode) {
             $hls = [];
             foreach ($episode as $key => $value) {
@@ -703,6 +705,71 @@ class AnilibriaClient
         }
 
         return null;
+    }
+
+    private function syncTorrents(int $animeId, array $torrents): void
+    {
+        if ($animeId <= 0 || empty($torrents)) {
+            return;
+        }
+
+        foreach ($torrents as $torrent) {
+            if (!is_array($torrent)) {
+                continue;
+            }
+
+            $label = Arr::get($torrent, 'label', '');
+            if (!is_string($label)) {
+                $label = '';
+            }
+            $label = trim($label);
+
+            $magnet = Arr::get($torrent, 'magnet');
+            if (!is_string($magnet) && $magnet !== null) {
+                $magnet = (string) $magnet;
+            }
+            $magnet = is_string($magnet) ? trim($magnet) : null;
+
+            $quality = Arr::get($torrent, 'quality.value', Arr::get($torrent, 'quality'));
+            if (is_array($quality)) {
+                $quality = Arr::get($quality, 'value');
+            }
+            if (!is_string($quality) && $quality !== null) {
+                $quality = (string) $quality;
+            }
+            $quality = is_string($quality) ? trim($quality) : null;
+
+            $size = Arr::get($torrent, 'size');
+            if (is_array($size)) {
+                $size = Arr::get($size, 'formatted', Arr::get($size, 'bytes'));
+            }
+            if (!is_string($size) && $size !== null) {
+                $size = (string) $size;
+            }
+            $size = is_string($size) ? trim($size) : null;
+
+            $lookup = ['anime_id' => $animeId];
+            if ($magnet) {
+                $lookup['magnet'] = $magnet;
+            } elseif ($label !== '') {
+                $lookup['label'] = $label;
+            }
+
+            if (count($lookup) === 1) {
+                continue;
+            }
+
+            Torrent::updateOrCreate(
+                $lookup,
+                [
+                    'anime_id' => $animeId,
+                    'label' => $label,
+                    'quality' => $quality,
+                    'size' => $size,
+                    'magnet' => $magnet,
+                ]
+            );
+        }
     }
 
     public function makeRequest(string $url, array $query = []): ?array
