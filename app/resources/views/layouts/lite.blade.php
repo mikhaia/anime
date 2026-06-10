@@ -85,12 +85,13 @@
                         <span class="nav-label">Лучшее</span>
                     </a>
                 </li>
+                <li>
+                @include('lite.yandex-informer')
+                </li>
             </ul>
         </nav>
     </div>
     @yield('content')
-
-    @include('lite.yandex-informer')
 
     <script src="/lite/jquery.js"></script>
     <script>
