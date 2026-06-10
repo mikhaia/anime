@@ -12,7 +12,21 @@ class Stream extends Model
         'episode_id',
         'quality',
         'url',
+        'cached_at',
     ];
+
+    protected $casts = [
+        'cached_at' => 'datetime',
+    ];
+
+    protected static function booted(): void
+    {
+        static::saving(function (Stream $stream) {
+            if ($stream->isDirty('url')) {
+                $stream->cached_at = now();
+            }
+        });
+    }
 
     public function anime(): BelongsTo
     {

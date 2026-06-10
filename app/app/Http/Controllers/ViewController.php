@@ -14,6 +14,8 @@ use Illuminate\Support\Facades\Auth;
 
 class ViewController extends Controller
 {
+    private const STREAM_CACHE_DAYS = 30;
+
     public function show(Request $request)
     {
         $anime = Anime::find($request->id);
@@ -22,8 +24,15 @@ class ViewController extends Controller
             $lastEpisode = $anime->episodes->last();
         }
 
+        $streamsOutdated = $anime
+            && $anime->streams()
+                ->where(function ($query) {
+                    $query->whereNull('cached_at')
+                        ->orWhere('cached_at', '<', now()->subDays(self::STREAM_CACHE_DAYS));
+                })
+                ->exists();
 
-        if (!$lastEpisode || $anime->updated_at > $lastEpisode->updated_at) {
+        if (!$lastEpisode || $anime->updated_at > $lastEpisode->updated_at || $streamsOutdated) {
             $client = app(AnilibriaClient::class);
             $release = $client->fetchDetails($request->id);
             if (!$anime) {
@@ -94,6 +103,7 @@ class ViewController extends Controller
                     ],
                     [
                         'url' => $url,
+                        'cached_at' => now(),
                     ]
                 );
             }
