@@ -133,14 +133,19 @@ function getAbove() {
 $(document).on('click', 'a', function (e) {
   const href = $(this).attr('href');
   const onclick = $(this).attr('onclick');
+  const target = $(this).attr('target');
 
-  if (onclick) {
+  if (
+    onclick ||
+    target === '_blank' ||
+    !href ||
+    href === '#' ||
+    href.startsWith('magnet:')
+  ) {
     return;
   }
 
-  if (href && href !== '#' && !href.startsWith('magnet:')) {
-    $('.loader').css('display', 'flex');
-  }
+  $('.loader').css('display', 'flex');
 });
 
 $(window).on('beforeunload pagehide', function () {
