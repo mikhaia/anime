@@ -89,6 +89,9 @@
         </nav>
     </div>
     @yield('content')
+
+    @include('lite.yandex-informer')
+
     <script src="/lite/jquery.js"></script>
     <script>
         $.ajaxSetup({
